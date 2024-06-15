@@ -25,10 +25,7 @@ func (r Client) Recipient() string {
 }
 
 func main() {
-		err := godotenv.Load()
-		if err != nil {
-			log.Fatal("Error loading .env file")
-		}
+		godotenv.Load()
 
 		pref := tele.Settings{
 			Token: os.Getenv("TG_BOT_TOKEN"),
