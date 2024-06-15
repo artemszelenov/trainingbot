@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -54,16 +55,16 @@ func main() {
 			Automigrate: isGoRun,
     })
 
-		// adminChatIDInt, err := strconv.ParseInt(os.Getenv("ADMIN_CHAT_ID"), 10, 64)
-		// if err != nil {
-		// 	log.Fatal("Error loading ADMIN_CHAT_ID env")
-		// }
+		adminChatIDInt, err := strconv.ParseInt(os.Getenv("ADMIN_CHAT_ID"), 10, 64)
+		if err != nil {
+			log.Fatal("Error loading ADMIN_CHAT_ID env")
+		}
 
 		b.SetCommands(
 			[]tele.Command{
 				{Text: "announce", Description: "Создать новый анонс"},
 			},
-			tele.CommandScope{Type: tele.CommandScopeChat, ChatID: 975449468},
+			tele.CommandScope{Type: tele.CommandScopeChat, ChatID: adminChatIDInt},
 		)
 
 		b.Handle("/start", func(c tele.Context) error {
