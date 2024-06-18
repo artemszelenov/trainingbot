@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -10,6 +11,7 @@ import (
 	_ "trainingbot/migrations"
 
 	"github.com/lpernett/godotenv"
+	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/models"
 	"github.com/pocketbase/pocketbase/plugins/migratecmd"
@@ -18,11 +20,22 @@ import (
 )
 
 type Client struct {
+	ID string `db:"id"`
 	ChatID string `db:"tg_chat_id"`
 }
 
 func (r Client) Recipient() string {
 	return r.ChatID
+}
+
+type ClientAnnounce struct {
+	MessageID string `db:"message_id"`
+	ChatID string `db:"tg_chat_id"`
+}
+
+func (a ClientAnnounce) MessageSig() (string, int64) {
+	chatID, _ := strconv.ParseInt(a.ChatID, 10, 64)
+	return a.MessageID, chatID
 }
 
 func main() {
@@ -100,21 +113,53 @@ func main() {
 
 		b.Handle(tele.OnText, func(c tele.Context) error {
 			if announceAwaited {
-				clients := app.Dao().DB().Select("tg_chat_id").From("clients")
+				clientsRecords := app.Dao().DB().Select("id", "tg_chat_id").From("clients")
 
-				res := []Client{}
-				clients.All(&res)
+				clients := []Client{}
+				clientsRecords.All(&clients)
 
-				for _, client := range res {
+				announces, err := app.Dao().FindCollectionByNameOrId("announces")
+				if err != nil {
+					log.Fatal("Can't find announces collection")
+				}
+
+				for _, client := range clients {
 					if os.Getenv("ADMIN_CHAT_ID") == client.ChatID {
 						continue
 					}
-					b.Send(client, c.Text())
+
+					msg, err := b.Send(&client, c.Text())
+					if err != nil {
+						fmt.Println(err)
+					}
+
+					newAnnounce := models.NewRecord(announces)
+					newAnnounce.Set("original_message_id", c.Message().ID)
+					newAnnounce.Set("message_id", msg.ID)
+					newAnnounce.Set("client", client.ID)
+
+					app.Dao().SaveRecord(newAnnounce)
 				}
 
 				announceAwaited = false
 
 				return c.Send("Анонс успешно отправлен всем клиентам")
+			}
+
+			return nil
+		})
+
+		b.Handle(tele.OnEdited, func(c tele.Context) error {
+			records := app.Dao().DB().
+				Select("announces.message_id", "clients.tg_chat_id").
+				From("announces", "clients").
+				Where(dbx.NewExp("announces.original_message_id = {:id}", dbx.Params{"id": c.Message().ID}))
+
+			announcesToUpdate := []ClientAnnounce{}
+			records.All(&announcesToUpdate)
+
+			for _, announce := range announcesToUpdate {
+				b.Edit(announce, c.Text())
 			}
 
 			return nil
