@@ -8,11 +8,13 @@ import (
 	"strings"
 	"time"
 
+	"trainingbot/handler"
 	_ "trainingbot/migrations"
 
 	"github.com/lpernett/godotenv"
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase"
+	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/models"
 	"github.com/pocketbase/pocketbase/plugins/migratecmd"
 	tele "gopkg.in/telebot.v3"
@@ -68,6 +70,11 @@ func main() {
 			Automigrate: isGoRun,
     })
 
+		app.OnBeforeServe().Add(func(e *core.ServeEvent) error {
+			e.Router.GET("/tg/web", handler.HandleHomeSHow)
+			return nil
+		})
+
 		adminChatIDInt, err := strconv.ParseInt(os.Getenv("ADMIN_CHAT_ID"), 10, 64)
 		if err != nil {
 			log.Fatal("Error loading ADMIN_CHAT_ID env")
@@ -113,7 +120,9 @@ func main() {
 
 		b.Handle(tele.OnText, func(c tele.Context) error {
 			if announceAwaited {
-				clientsRecords := app.Dao().DB().Select("id", "tg_chat_id").From("clients")
+				clientsRecords := app.Dao().DB().
+					Select("id", "tg_chat_id").
+					From("clients")
 
 				clients := []Client{}
 				clientsRecords.All(&clients)
