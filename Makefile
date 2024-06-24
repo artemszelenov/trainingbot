@@ -1,9 +1,5 @@
 run:
-	@templ generate
-	@go run cmd/main.go serve
+	@go run main.go serve
 
-html:
-	@templ generate
-
-build-server:
+binary:
 	env GOOS=linux GOARCH=amd64 go build -o ./bin
