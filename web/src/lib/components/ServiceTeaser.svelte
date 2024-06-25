@@ -16,7 +16,7 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    padding: 30px 22px;
+    padding: 30px 22px 22px;
     border-radius: 18px;
     background-image: var(--bg);
     background-repeat: no-repeat;
