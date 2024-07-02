@@ -9,8 +9,8 @@
 
   <TabsNav>
     <a href="/" class="is-active">Йога</a>
-    <a href="/psychotherapy">Психотерапия</a>
-    <a href="/complex">Комплекс</a>
+    <a href="/psychotherapy.html">Психотерапия</a>
+    <a href="/complex.html">Комплекс</a>
   </TabsNav>
 </header>
 
@@ -18,21 +18,21 @@
   <ServiceTeaser
     title="Йога за 30 минут"
     subtitle="Это телеграмм - чат с 30-минутными видео-уроками на различную тематику"
-    href="/yoga/30-min"
+    href="/yoga/30-min.html"
     bgUrl="/yoga-30-min-bg.png"
   />
 
   <ServiceTeaser
     title="Йога за 30 минут"
     subtitle="Это телеграмм - чат с 30-минутными видео-уроками на различную тематику"
-    href="/yoga/30-min"
+    href="/yoga/30-min.html"
     bgUrl="/yoga-30-min-bg.png"
   />
 
   <ServiceTeaser
     title="Йога за 30 минут"
     subtitle="Это телеграмм - чат с 30-минутными видео-уроками на различную тематику"
-    href="/yoga/30-min"
+    href="/yoga/30-min.html"
     bgUrl="/yoga-30-min-bg.png"
   />
 </main>

@@ -9,8 +9,8 @@
 
   <TabsNav>
     <a href="/">Йога</a>
-    <a href="/psychotherapy">Психотерапия</a>
-    <a href="/complex" class="is-active">Комплекс</a>
+    <a href="/psychotherapy.html">Психотерапия</a>
+    <a href="/complex.html" class="is-active">Комплекс</a>
   </TabsNav>
 </header>
 
@@ -18,7 +18,7 @@
   <ServiceTeaser
     title="Индивидуальная сессия"
     subtitle="Описание"
-    href="/complex/1-1"
+    href="/complex/1-1.html"
     bgUrl="/yoga-30-min-bg.png"
   />
 </main>

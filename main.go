@@ -13,7 +13,6 @@ import (
 	"github.com/lpernett/godotenv"
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase"
-	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/models"
 	"github.com/pocketbase/pocketbase/plugins/migratecmd"
 	tele "gopkg.in/telebot.v3"
@@ -68,11 +67,6 @@ func main() {
 			// (the isGoRun check is to enable it only during development)
 			Automigrate: isGoRun,
     })
-
-		app.OnBeforeServe().Add(func(e *core.ServeEvent) error {
-			e.Router.Static("/", "./public")
-			return nil
-		})
 
 		adminChatIDInt, err := strconv.ParseInt(os.Getenv("ADMIN_CHAT_ID"), 10, 64)
 		if err != nil {

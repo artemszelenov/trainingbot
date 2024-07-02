@@ -8,8 +8,8 @@
 
   <TabsNav>
     <a href="/">Йога</a>
-    <a href="/psychotherapy" class="is-active">Психотерапия</a>
-    <a href="/complex">Комплекс</a>
+    <a href="/psychotherapy.html" class="is-active">Психотерапия</a>
+    <a href="/complex.html">Комплекс</a>
   </TabsNav>
 </header>
 
