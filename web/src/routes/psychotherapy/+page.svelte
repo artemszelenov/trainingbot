@@ -17,7 +17,7 @@
 <main class="container">
   <ServiceTeaser
     title="Индивидуальная сессия"
-    subtitle="Описание"
+    subtitle="Высокоэффективные психологические сессии ИНП (интегральное нейропрограммирование)"
     href="/psychotherapy/1-1.html"
     bgUrl="/yoga-30-min-bg.png"
   />

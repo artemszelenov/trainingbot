@@ -16,8 +16,8 @@
 
 <main class="container">
   <ServiceTeaser
-    title="Индивидуальная сессия"
-    subtitle="Описание"
+    title="Индивидуальная комплексная работа"
+    subtitle="Применение техник йоги совместно с интегральным нейропрограммированием"
     href="/complex/1-1.html"
     bgUrl="/yoga-30-min-bg.png"
   />
