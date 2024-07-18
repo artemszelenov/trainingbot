@@ -1,0 +1,31 @@
+{
+  "name": "margo-yoga-web",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "db": "./db/pocketbase serve",
+    "tunnel": "node ./src/tunnel.js",
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
+  },
+  "devDependencies": {
+    "@sveltejs/adapter-node": "^5.2.0",
+    "@sveltejs/kit": "^2.5.18",
+    "@sveltejs/vite-plugin-svelte": "^3.1.1",
+    "@types/node-telegram-bot-api": "^0.64.7",
+    "dotenv": "^16.4.5",
+    "ngrok": "5.0.0-beta.2",
+    "svelte": "5.0.0-next.191",
+    "svelte-check": "^3.8.4",
+    "vite": "^5.3.4"
+  },
+  "type": "module",
+  "dependencies": {
+    "@fontsource/inter": "^5.0.19",
+    "node-telegram-bot-api": "^0.66.0",
+    "pocketbase": "^0.21.3"
+  }
+}
