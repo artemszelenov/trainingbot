@@ -1,7 +1,7 @@
 <script>
-  import Author from '$lib/components/Author.svelte'
-  import TabsNav from '$lib/components/TabsNav.svelte'
-  import ServiceTeaser from '$lib/components/ServiceTeaser.svelte'
+  import Author from '$lib/components/Author.svelte';
+  import TabsNav from '$lib/components/TabsNav.svelte';
+  import ServiceTeaser from '$lib/components/ServiceTeaser.svelte';
 </script>
 
 <header class="container">
@@ -17,7 +17,7 @@
 <main class="container">
   <ServiceTeaser
     title="Консультация"
-    subtitle="За 40 минут выявляем ваш запрос/проблему и пути решения"
+    subtitle="За 40 минут выявляем вашу проблему и пути решения"
     href="/yoga/consultation"
     bgUrl="/yoga-30-min-bg.png"
   />

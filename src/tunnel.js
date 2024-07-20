@@ -14,7 +14,7 @@ export const bot = new TelegramBot(BOT_TOKEN)
 
 const url = await ngrok.connect(5173)
 
-console.log('tunnel', url)
-console.log('bot', BOT_TOKEN)
-console.log(await bot.setWebHook(url))
-console.log(await bot.getWebHookInfo())
+console.log('tunnel     ', url)
+console.log('bot        ', BOT_TOKEN)
+console.log('webHookSet ', await bot.setWebHook(url))
+console.log('webHookInfo', await bot.getWebHookInfo())

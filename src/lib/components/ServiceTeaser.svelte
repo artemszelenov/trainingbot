@@ -1,5 +1,12 @@
-<script>
-  const { title, subtitle, href, bgUrl } = $props();
+<script lang="ts">
+  type Props = {
+    title: string;
+    subtitle: string;
+    href: string;
+    bgUrl: string;
+  };
+
+  const { title, subtitle, href, bgUrl }: Props = $props();
 </script>
 
 <article style="--bg: url('{bgUrl}')">
@@ -7,7 +14,7 @@
     <h1>{title}</h1>
     <p>{subtitle}</p>
 
-    <a href={href}>Подробнее</a>
+    <a {href}>Подробнее</a>
   </section>
 </article>
 
@@ -16,7 +23,6 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    padding: 30px 22px 22px;
     border-radius: 18px;
     background-image: var(--bg);
     background-repeat: no-repeat;
@@ -28,12 +34,13 @@
       position: absolute;
       inset: 0;
       background-color: var(--bg-basic-40);
-      content: "";
+      content: '';
     }
   }
 
   section {
     position: relative;
+    padding: 30px 22px 22px;
   }
 
   h1 {
@@ -58,5 +65,12 @@
     background-color: var(--bg-basic);
     color: var(--text-skin);
     text-decoration: none;
+    font-weight: 600;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+    }
   }
 </style>

@@ -1,6 +1,36 @@
 <script>
-  import Author from '$lib/components/Author.svelte'
-  import TabsNav from '$lib/components/TabsNav.svelte'
+  import { browser } from '$app/environment';
+  import { goto, onNavigate } from '$app/navigation';
+  import { initBackButton, initMainButton, isTMA } from '@telegram-apps/sdk';
+  import Author from '$lib/components/Author.svelte';
+  import TabsNav from '$lib/components/TabsNav.svelte';
+
+  if (browser) {
+    isTMA().then((tma) => {
+      if (!tma) return;
+
+      const [bb] = initBackButton();
+      const [mb] = initMainButton();
+
+      mb.setBgColor('#424242')
+        .setTextColor('#FFDAB9')
+        .setText('Записаться на консультацию')
+        .enable()
+        .show();
+
+      bb.show();
+
+      bb.on('click', () => {
+        goto('/');
+        bb.hide();
+      });
+
+      onNavigate(() => {
+        bb.hide();
+        mb.hide();
+      });
+    });
+  }
 </script>
 
 <header class="container">
@@ -13,27 +43,29 @@
   </TabsNav>
 </header>
 
-<main class="container">
+<main class="container prose">
   <h1>Персональная йога</h1>
 
-  <h3>Как строится работа:</h3>
+  <h3>Как строится работа</h3>
 
-  <ul>
-    <li>диагностическая консультация (выявляем запрос и составляем персональный протокол йоги)</li>
-    <li>договор на оказание спортивно-оздоровительных услуг</li>
-    <li>пакет из 10 занятий и обратная связь по результатам модуля (опросники, тесты, фото До/После для оценки результативности занятий)</li>
-    <li>выбираем удобный формат занятий (онлайн/оффлайн), время и место</li>
-  </ul>
+  <ol>
+    <li>
+      Диагностическая консультация (выявляем запрос и составляем персональный
+      протокол йоги)
+    </li>
+    <li>Договор на оказание спортивно-оздоровительных услуг</li>
+    <li>
+      Пакет из 10 занятий и обратная связь по результатам модуля (опросники,
+      тесты, фото До/После для оценки результативности занятий)
+    </li>
+    <li>Выбираем удобный формат занятий (онлайн/оффлайн), время и место</li>
+  </ol>
 
-  <h3>Стоимость:</h3>
+  <h3>Стоимость</h3>
 
-  <p>
-    Консультация - 2000₽ (в дальнейшем при выборе пакета из 10 занятий, она будет включена в стоимость пакета)
-    1 занятие - 3500₽ (в дальнейшем при выборе пакета из 10 занятий, оно будет включено в стоимость пакета)  
-    10 занятий - 25 000₽ (доступна рассрочка)
-  </p>
+  <p><strong>2 000 ₽</strong> / Консультация</p>
 
-  <button>
-    Записаться на консультацию
-  </button>
+  <p><strong>3 500 ₽</strong> / 1 занятие</p>
+
+  <p><strong>25 000 ₽</strong> / 10 занятий (доступна рассрочка)</p>
 </main>

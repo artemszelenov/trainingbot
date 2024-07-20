@@ -1,6 +1,36 @@
 <script>
-  import Author from '$lib/components/Author.svelte'
-  import TabsNav from '$lib/components/TabsNav.svelte'
+  import { browser } from '$app/environment';
+  import { goto, onNavigate } from '$app/navigation';
+  import { initBackButton, initMainButton, isTMA } from '@telegram-apps/sdk';
+  import Author from '$lib/components/Author.svelte';
+  import TabsNav from '$lib/components/TabsNav.svelte';
+
+  if (browser) {
+    isTMA().then((tma) => {
+      if (!tma) return;
+
+      const [bb] = initBackButton();
+      const [mb] = initMainButton();
+
+      mb.setBgColor('#424242')
+        .setTextColor('#FFDAB9')
+        .setText('Записаться на консультацию')
+        .enable()
+        .show();
+
+      bb.show();
+
+      bb.on('click', () => {
+        goto('/');
+        bb.hide();
+      });
+
+      onNavigate(() => {
+        bb.hide();
+        mb.hide();
+      });
+    });
+  }
 </script>
 
 <header class="container">
@@ -13,34 +43,36 @@
   </TabsNav>
 </header>
 
-<main class="container">
+<main class="container prose">
   <h1>Консультация</h1>
 
-  <h3>С чем стоит обратиться:</h3>
+  <h3>С чем стоит обратиться</h3>
 
   <ul>
-    <li>лишние кг; желание подтянуть тело</li>
-    <li>эмоциональные качели, стресс</li>
-    <li>избавиться от бессонницы, панических атак</li>
-    <li>нарушение осанки, боли в спине</li>
-    <li>протрузии/грыжи</li>
-    <li>проблемы по-женски (боли в критические дни; ПМС; эндометриоз, поликистоз, миома)</li>
-    <li>беременность</li>
-    <li>послеродовое восстановление (диастаз, симфизит, депрессия)</li>
+    <li>Лишние кг; желание подтянуть тело</li>
+    <li>Эмоциональные качели, стресс</li>
+    <li>Избавиться от бессонницы, панических атак</li>
+    <li>Нарушение осанки, боли в спине</li>
+    <li>Протрузии/грыжи</li>
+    <li>
+      Проблемы по-женски (боли в критические дни; ПМС; эндометриоз, поликистоз,
+      миома)
+    </li>
+    <li>Беременность</li>
+    <li>Послеродовое восстановление (диастаз, симфизит, депрессия)</li>
   </ul>
 
-  <h3>Как проходит консультация:</h3>
+  <h3>Как проходит консультация</h3>
 
-  <ul>
-    <li>видео-созвон в Телеграмм на 40 минут </li>
-    <li>подробный разбор вашего запроса и предложения вариантов его решения</li>
-    <li>подбор формата занятий, времени и места </li>
-    <li>выбор тарифы</li>
-    <li>ответы на вопросы</li>
-  </ul>
+  <ol>
+    <li>Видео-созвон в Телеграмм на 40 минут</li>
+    <li>Подробный разбор вашего запроса и предложения вариантов его решения</li>
+    <li>Подбор формата занятий, времени и места</li>
+    <li>Выбор тарифы</li>
+    <li>Ответы на вопросы</li>
+  </ol>
 
-  <button>
-    *Кнопка «записаться на консультацию»
-    1500₽*
-  </button>
+  <h3>Стоимость</h3>
+
+  <p><strong>2 000 ₽</strong> / Консультация</p>
 </main>

@@ -1,7 +1,7 @@
 <script>
-  import Author from '$lib/components/Author.svelte'
-  import TabsNav from '$lib/components/TabsNav.svelte'
-  import ServiceTeaser from '$lib/components/ServiceTeaser.svelte'
+  import Author from '$lib/components/Author.svelte';
+  import TabsNav from '$lib/components/TabsNav.svelte';
+  import ServiceTeaser from '$lib/components/ServiceTeaser.svelte';
 </script>
 
 <header class="container">
@@ -22,4 +22,3 @@
     bgUrl="/yoga-30-min-bg.png"
   />
 </main>
-
