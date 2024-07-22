@@ -20,6 +20,5 @@ Thumbs.db
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
-# Pocketbase
-pb_data
-tmp
+# Drizzle
+db/sqlite.db

@@ -1,6 +1,7 @@
 import { env } from '$env/dynamic/private'
 import TelegramBot from 'node-telegram-bot-api'
-import PocketBase from 'pocketbase'
+import { clients } from '../db/schema'
+import { db } from '../db/instance'
 
 const BOT_TOKEN = env.TG_BOT_TOKEN
 const ADMIN_CHAT_ID = env.ADMIN_CHAT_ID
@@ -10,7 +11,6 @@ if (!BOT_TOKEN) {
 }
 
 export const bot = new TelegramBot(BOT_TOKEN)
-const db = new PocketBase('http://localhost:8090')
 
 bot.setMyCommands([{
   command: 'announce',
@@ -24,22 +24,21 @@ bot.setMyCommands([{
 
 let announceAwaited = false
 
-bot.on('/start', async (msg) => {
+bot.onText(/\/start/, async (msg) => {
   try {
-    await db.collection('clients').create({
+    db.insert(clients).values({
       tg_chat_id: msg.chat.id,
-      first_name: msg.from.first_name,
-      last_name: msg.from.last_name,
-      username: msg.from.username
-    })
-  } catch {
-    throw new Error('Can\'t create user')
+      first_name: msg.from?.first_name,
+      last_name: msg.from?.last_name,
+      username: msg.from?.username
+    }).run()
+  } catch (err) {
+    if (err instanceof Error) {
+      console.error('Drizzle: ', err.message)
+    }
   }
 
-  await bot.sendMessage(msg.chat.id, `
-    Здравствуйте! Я чат-бот Маргариты. 
-    Благодаря мне, теперь вы всегда будете в курсе всех практик и мероприятий от Марго!
-  `)
+  bot.sendMessage(msg.chat.id, 'Здравствуйте! Я чат-бот Маргариты. Благодаря мне, теперь вы всегда будете в курсе всех практик и мероприятий от Марго!')
 })
 
 bot.on('/announce', async (msg) => {
@@ -58,31 +57,31 @@ bot.on('callback_query', async ({ id }) => {
   await bot.sendMessage(id, 'Анонс отменен')
 })
 
-bot.on('message', async (msg) => {
-  if (!announceAwaited) return
+// bot.on('message', async (msg) => {
+//   if (!announceAwaited) return
 
-  const clients = await db.collection('clients').getFullList({
-    fields: 'id, tg_chat_id'
-  })
+//   const clients = await db.collection('clients').getFullList({
+//     fields: 'id, tg_chat_id'
+//   })
 
-  for (const client of clients) {
-    if (client.tg_chat_id === ADMIN_CHAT_ID) {
-      continue
-    }
+//   for (const client of clients) {
+//     if (client.tg_chat_id === ADMIN_CHAT_ID) {
+//       continue
+//     }
 
-    const client_sent_msg = await bot.sendMessage(client.tg_chat_id, msg.text ?? '') // todo: fix
+//     const client_sent_msg = await bot.sendMessage(client.tg_chat_id, msg.text ?? '') // todo: fix
 
-    await db.collection('announces').create({
-      original_message_id: msg.message_id,
-      message_id: client_sent_msg.message_id,
-      client: client.id
-    })
-  }
+//     await db.collection('announces').create({
+//       original_message_id: msg.message_id,
+//       message_id: client_sent_msg.message_id,
+//       client: client.id
+//     })
+//   }
 
-  announceAwaited = false
+//   announceAwaited = false
 
-  await bot.sendMessage(msg.chat.id, 'Анонс успешно отправлен всем клиентам')
-})
+//   await bot.sendMessage(msg.chat.id, 'Анонс успешно отправлен всем клиентам')
+// })
 
 // warn! pseudocode
 // bot.on('edited_message', async (msg) => {
