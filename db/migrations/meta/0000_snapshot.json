@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "9763db8d-c3f7-4fdc-b3f6-4504b990fff4",
+  "id": "44634d6e-532e-4245-ab5c-47a518f7e8ce",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "announces": {
@@ -14,25 +14,25 @@
           "notNull": true,
           "autoincrement": true
         },
-        "original_message_id": {
-          "name": "original_message_id",
+        "sender_message_id": {
+          "name": "sender_message_id",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
-        "message_id": {
-          "name": "message_id",
+        "client_message_id": {
+          "name": "client_message_id",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "client_id": {
           "name": "client_id",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "created_at": {
@@ -81,11 +81,11 @@
           "notNull": true,
           "autoincrement": true
         },
-        "tg_chat_id": {
-          "name": "tg_chat_id",
+        "chat_id": {
+          "name": "chat_id",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "first_name": {

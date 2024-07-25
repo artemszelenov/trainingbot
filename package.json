@@ -1,11 +1,16 @@
 {
-  "name": "margo-yoga-web",
+  "name": "margo-yoga-bot",
   "version": "0.0.1",
   "private": true,
+  "engines": {
+    "node": "20.x"
+  },
+  "packageManager": "pnpm@9.5.0",
   "scripts": {
     "studio": "drizzle-kit studio",
     "gen": "drizzle-kit generate",
     "migrate": "drizzle-kit migrate",
+    "drop": "drizzle-kit drop",
     "tunnel": "node ./src/tunnel.js",
     "dev": "vite dev",
     "build": "vite build",

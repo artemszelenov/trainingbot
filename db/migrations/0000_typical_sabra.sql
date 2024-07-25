@@ -1,8 +1,8 @@
 CREATE TABLE `announces` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-	`original_message_id` integer,
-	`message_id` integer,
-	`client_id` integer,
+	`sender_message_id` integer NOT NULL,
+	`client_message_id` integer NOT NULL,
+	`client_id` integer NOT NULL,
 	`created_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	`updated_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	FOREIGN KEY (`client_id`) REFERENCES `clients`(`id`) ON UPDATE no action ON DELETE no action
@@ -10,7 +10,7 @@ CREATE TABLE `announces` (
 --> statement-breakpoint
 CREATE TABLE `clients` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-	`tg_chat_id` integer,
+	`chat_id` integer NOT NULL,
 	`first_name` text,
 	`last_name` text,
 	`username` text,
