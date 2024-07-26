@@ -6,6 +6,9 @@ import { eq } from "drizzle-orm";
 
 const BOT_TOKEN = env.TG_BOT_TOKEN;
 const ADMIN_CHAT_ID = env.ADMIN_CHAT_ID;
+const ADMIN_NAME = "Рита";
+const WELCOME_MESSAGE =
+  "Здравствуйте! Я чат-бот Маргариты. Благодаря мне, теперь вы всегда будете в курсе всех практик и мероприятий от Марго!";
 
 if (!BOT_TOKEN) {
   throw new Error("BOT_TOKEN is not set");
@@ -29,7 +32,8 @@ bot.setMyCommands(
 );
 
 let announce_awaited = false;
-let announce_message_id: number | null = null;
+let last_announce_status_message_id: number | null = null;
+let last_sender_announce_message_id: number | null = null;
 
 bot.onText(/\/start/, async (msg) => {
   try {
@@ -48,25 +52,28 @@ bot.onText(/\/start/, async (msg) => {
   }
 
   if (msg.chat.id === Number(ADMIN_CHAT_ID)) {
-    bot.sendMessage(msg.chat.id, "Привет Рита!");
+    bot.sendMessage(msg.chat.id, `Привет, ${ADMIN_NAME}!`);
   } else {
-    bot.sendMessage(
-      msg.chat.id,
-      "Здравствуйте! Я чат-бот Маргариты. Благодаря мне, теперь вы всегда будете в курсе всех практик и мероприятий от Марго!"
-    );
+    bot.sendMessage(msg.chat.id, WELCOME_MESSAGE);
   }
 });
 
 bot.onText(/\/announce/, async (msg) => {
   announce_awaited = true;
 
-  const m = await bot.sendMessage(msg.chat.id, "Жду свежий анонс", {
-    reply_markup: {
-      inline_keyboard: [[{ text: "Отмена", callback_data: "cancel_announce" }]],
-    },
-  });
+  const m = await bot.sendMessage(
+    msg.chat.id,
+    "Напиши и отправь мне текст рассылки (можно прикрепить одно фото)",
+    {
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: "Отмена", callback_data: "cancel_announce" }],
+        ],
+      },
+    }
+  );
 
-  announce_message_id = m.message_id;
+  last_announce_status_message_id = m.message_id;
 });
 
 bot.on("photo", async (msg) => {
@@ -78,10 +85,36 @@ bot.on("text", async (msg) => {
 });
 
 bot.on("callback_query", async ({ message, data }) => {
-  announce_awaited = false;
+  if (!message) return;
 
-  if (data === "cancel_announce" && message) {
-    await bot.editMessageText("Анонс отменен", {
+  if (data === "cancel_announce") {
+    announce_awaited = false;
+
+    await bot.editMessageText("Рассылка отменена", {
+      reply_markup: undefined,
+      chat_id: message.chat.id,
+      message_id: message.message_id,
+    });
+  }
+
+  if (data === "delete_announce" && last_sender_announce_message_id) {
+    announce_awaited = false;
+
+    const announces_to_delete = await db
+      .select({
+        client_message_id: announces.client_message_id,
+        client_chat_id: clients.chat_id,
+      })
+      .from(announces)
+      .where(eq(announces.sender_message_id, last_sender_announce_message_id))
+      .leftJoin(clients, eq(announces.client_id, clients.id))
+      .all();
+
+    for (const a of announces_to_delete) {
+      await bot.deleteMessage(a.client_chat_id!, a.client_message_id);
+    }
+
+    await bot.editMessageText("Рассылка удалена у всех клиентов", {
       reply_markup: undefined,
       chat_id: message.chat.id,
       message_id: message.message_id,
@@ -113,11 +146,6 @@ bot.on("edited_message", async (msg) => {
       });
     }
   }
-});
-
-bot.on("message", async (msg) => {
-  // add deliting
-  console.log(msg);
 });
 
 async function sendAnnounce(msg: TelegramBot.Message) {
@@ -164,14 +192,23 @@ async function sendAnnounce(msg: TelegramBot.Message) {
       .run();
   }
 
-  if (announce_message_id) {
-    await bot.editMessageText("Анонс успешно отправлен всем клиентам 👇🏻", {
-      reply_markup: undefined,
+  if (last_announce_status_message_id) {
+    await bot.editMessageText("Рассылка успешно отправлена всем клиентам 🎉", {
+      reply_markup: {
+        inline_keyboard: [
+          [
+            {
+              text: "⚠️ Удалить последнюю рассылку у всех",
+              callback_data: "delete_announce",
+            },
+          ],
+        ],
+      },
       chat_id: msg.chat.id,
-      message_id: announce_message_id,
+      message_id: last_announce_status_message_id,
     });
   }
 
+  last_sender_announce_message_id = msg.message_id;
   announce_awaited = false;
-  announce_message_id = null;
 }
