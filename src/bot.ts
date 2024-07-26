@@ -29,6 +29,7 @@ bot.setMyCommands(
 );
 
 let announce_awaited = false;
+let announce_message_id: number | null = null;
 
 bot.onText(/\/start/, async (msg) => {
   try {
@@ -59,11 +60,21 @@ bot.onText(/\/start/, async (msg) => {
 bot.onText(/\/announce/, async (msg) => {
   announce_awaited = true;
 
-  await bot.sendMessage(msg.chat.id, "Жду свежий анонс", {
+  const m = await bot.sendMessage(msg.chat.id, "Жду свежий анонс", {
     reply_markup: {
       inline_keyboard: [[{ text: "Отмена", callback_data: "cancel_announce" }]],
     },
   });
+
+  announce_message_id = m.message_id;
+});
+
+bot.on("photo", async (msg) => {
+  await sendAnnounce(msg);
+});
+
+bot.on("text", async (msg) => {
+  await sendAnnounce(msg);
 });
 
 bot.on("callback_query", async ({ message, data }) => {
@@ -78,7 +89,38 @@ bot.on("callback_query", async ({ message, data }) => {
   }
 });
 
+bot.on("edited_message", async (msg) => {
+  const announces_to_update = await db
+    .select({
+      client_message_id: announces.client_message_id,
+      chat_id: clients.chat_id,
+    })
+    .from(announces)
+    .where(eq(announces.sender_message_id, msg.message_id))
+    .leftJoin(clients, eq(announces.client_id, clients.id))
+    .all();
+
+  for (const a of announces_to_update) {
+    if (msg.caption) {
+      await bot.editMessageCaption(msg.caption, {
+        chat_id: a.chat_id!,
+        message_id: a.client_message_id,
+      });
+    } else if (msg.text) {
+      await bot.editMessageText(msg.text, {
+        chat_id: a.chat_id!,
+        message_id: a.client_message_id,
+      });
+    }
+  }
+});
+
 bot.on("message", async (msg) => {
+  // add deliting
+  console.log(msg);
+});
+
+async function sendAnnounce(msg: TelegramBot.Message) {
   if (!announce_awaited) return;
 
   const all_clients = await db
@@ -94,10 +136,23 @@ bot.on("message", async (msg) => {
       continue;
     }
 
-    const client_sent_msg = await bot.sendMessage(
-      client.chat_id,
-      msg.text ?? ""
-    ); // todo: fix
+    let client_sent_msg: TelegramBot.Message | null = null;
+    if (msg.text) {
+      client_sent_msg = await bot.sendMessage(client.chat_id, msg.text!);
+    } else if (msg.photo) {
+      client_sent_msg = await bot.sendPhoto(
+        client.chat_id,
+        msg.photo[2].file_id,
+        {
+          caption: msg.caption,
+        }
+      );
+    }
+
+    if (!client_sent_msg) {
+      console.error("Trainingbot: not supported announce type");
+      return;
+    }
 
     await db
       .insert(announces)
@@ -109,25 +164,14 @@ bot.on("message", async (msg) => {
       .run();
   }
 
-  announce_awaited = false;
-
-  await bot.sendMessage(msg.chat.id, "Анонс успешно отправлен всем клиентам");
-});
-
-bot.on("edited_message", async (msg) => {
-  if (!msg.text) return;
-
-  const announces_to_update = await db
-    .select()
-    .from(announces)
-    .where(eq(announces.sender_message_id, msg.message_id))
-    .leftJoin(clients, eq(announces.client_id, clients.id))
-    .all();
-
-  for (const a of announces_to_update) {
-    await bot.editMessageText(msg.text, {
-      chat_id: a.clients?.chat_id,
-      message_id: a.announces.client_message_id,
+  if (announce_message_id) {
+    await bot.editMessageText("Анонс успешно отправлен всем клиентам 👇🏻", {
+      reply_markup: undefined,
+      chat_id: msg.chat.id,
+      message_id: announce_message_id,
     });
   }
-});
+
+  announce_awaited = false;
+  announce_message_id = null;
+}
