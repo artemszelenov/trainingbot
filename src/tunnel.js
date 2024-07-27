@@ -1,20 +1,17 @@
-import dotenv from 'dotenv'
-import ngrok from 'ngrok'
-import TelegramBot from 'node-telegram-bot-api'
+import dotenv from "dotenv";
+import ngrok from "ngrok";
+import { bot } from "./bot";
 
-dotenv.config()
+dotenv.config();
 
-const BOT_TOKEN = process.env.TG_BOT_TOKEN
+const BOT_TOKEN = process.env.TG_BOT_TOKEN;
 
 if (!BOT_TOKEN) {
-  throw new Error('BOT_TOKEN is not set')
+  throw new Error("BOT_TOKEN is not set");
 }
 
-export const bot = new TelegramBot(BOT_TOKEN)
+const url = await ngrok.connect(5173);
 
-const url = await ngrok.connect(5173)
+await bot.api.setWebhook({ url });
 
-console.log('tunnel     ', url)
-console.log('bot        ', BOT_TOKEN)
-console.log('webHookSet ', await bot.setWebHook(url))
-console.log('webHookInfo', await bot.getWebHookInfo())
+console.log("webHookInfo", await bot.api.getWebhookInfo());
