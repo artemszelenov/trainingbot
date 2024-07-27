@@ -1,4 +1,4 @@
-import { Bot, type Message, type TelegramMessage } from "gramio";
+import { Bot, type TelegramMessage } from "gramio";
 import * as schema from "../db/schema";
 import { db } from "../db/instance";
 import { eq } from "drizzle-orm";
@@ -76,7 +76,70 @@ bot.command("announce", async (c) => {
 });
 
 bot.on("message", async (c) => {
-  await sendAnnounce(c);
+  if (!announce_awaited) return;
+
+  const all_clients = await db
+    .select({
+      id: schema.clients.id,
+      chat_id: schema.clients.chat_id,
+    })
+    .from(schema.clients)
+    .all();
+
+  for (const client of all_clients) {
+    if (client.chat_id === Number(ADMIN_CHAT_ID)) {
+      continue;
+    }
+
+    let client_sent_msg: TelegramMessage | null = null;
+    if (c.text) {
+      client_sent_msg = await bot.api.sendMessage({
+        chat_id: client.chat_id,
+        text: c.text,
+      });
+    } else if (c.photo) {
+      client_sent_msg = await bot.api.sendPhoto({
+        chat_id: client.chat_id,
+        photo: c.photo[0].fileId,
+        caption: c.caption,
+      });
+    }
+
+    if (!client_sent_msg) {
+      console.error("[Trainingbot] Not supported announce type");
+      return;
+    }
+
+    await db
+      .insert(schema.announces)
+      .values({
+        client_id: client.id,
+        sender_message_id: c.id,
+        client_message_id: client_sent_msg.message_id,
+      })
+      .run();
+  }
+
+  if (last_announce_status_message_id) {
+    await bot.api.editMessageText({
+      text: "Рассылка успешно отправлена 🎉",
+      chat_id: c.chat.id,
+      message_id: last_announce_status_message_id,
+      reply_markup: {
+        inline_keyboard: [
+          [
+            {
+              text: "⚠️ Удалить последнюю рассылку",
+              callback_data: "delete_announce",
+            },
+          ],
+        ],
+      },
+    });
+  }
+
+  last_sender_announce_message_id = c.id;
+  announce_awaited = false;
 });
 
 bot.on("callback_query", async ({ message, data }) => {
@@ -119,7 +182,7 @@ bot.on("callback_query", async ({ message, data }) => {
     }
 
     await bot.api.editMessageText({
-      text: "Рассылка удалена у всех клиентов",
+      text: "Рассылка удалена",
       chat_id: message.chat.id,
       message_id: message.id,
       reply_markup: undefined,
@@ -139,85 +202,24 @@ bot.on("edited_message", async (msg) => {
     .all();
 
   for (const a of announces_to_update) {
-    if (msg.caption) {
-      await bot.api.editMessageCaption({
-        caption: msg.caption,
-        chat_id: a.chat_id!,
-        message_id: a.client_message_id,
-      });
-    } else if (msg.text) {
-      await bot.api.editMessageText({
-        text: msg.text,
-        chat_id: a.chat_id!,
-        message_id: a.client_message_id,
-      });
+    try {
+      if (msg.caption) {
+        await bot.api.editMessageCaption({
+          caption: msg.caption,
+          chat_id: a.chat_id!,
+          message_id: a.client_message_id,
+        });
+      } else if (msg.text) {
+        await bot.api.editMessageText({
+          text: msg.text,
+          chat_id: a.chat_id!,
+          message_id: a.client_message_id,
+        });
+      }
+    } catch (err) {
+      if (err instanceof Error) {
+        console.error(err.message);
+      }
     }
   }
 });
-
-async function sendAnnounce(msg: Message) {
-  if (!announce_awaited) return;
-
-  const all_clients = await db
-    .select({
-      id: schema.clients.id,
-      chat_id: schema.clients.chat_id,
-    })
-    .from(schema.clients)
-    .all();
-
-  for (const client of all_clients) {
-    if (client.chat_id === Number(ADMIN_CHAT_ID)) {
-      continue;
-    }
-
-    let client_sent_msg: TelegramMessage | null = null;
-    if (msg.text) {
-      client_sent_msg = await bot.api.sendMessage({
-        chat_id: client.chat_id,
-        text: msg.text,
-      });
-    } else if (msg.photo) {
-      client_sent_msg = await bot.api.sendPhoto({
-        chat_id: client.chat_id,
-        photo: msg.photo[0].fileId,
-        caption: msg.caption,
-      });
-    }
-
-    if (!client_sent_msg) {
-      console.error("[Trainingbot] Not supported announce type");
-      return;
-    }
-
-    await db
-      .insert(schema.announces)
-      .values({
-        client_id: client.id,
-        sender_message_id: msg.id,
-        client_message_id: client_sent_msg.message_id,
-      })
-      .run();
-  }
-
-  if (last_announce_status_message_id) {
-    await bot.api.editMessageText({
-      text: "Рассылка успешно отправлена всем клиентам 🎉",
-      chat_id: msg.chat.id,
-      message_id: last_announce_status_message_id,
-      reply_markup: {
-        inline_keyboard: [
-          [
-            {
-              text: "⚠️ Удалить последнюю рассылку у всех",
-              callback_data: "delete_announce",
-            },
-          ],
-        ],
-      },
-    });
-  }
-
-  last_sender_announce_message_id = msg.id;
-  announce_awaited = false;
-}
