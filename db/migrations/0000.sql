@@ -1,0 +1,3 @@
+DROP TABLE IF EXISTS announces;
+
+DROP TABLE IF EXISTS clients;

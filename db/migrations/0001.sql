@@ -1,0 +1,21 @@
+CREATE TABLE clients (
+	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+	chat_id INTEGER NOT NULL,
+	first_name TEXT,
+	last_name TEXT,
+	username TEXT,
+	created_at TEXT DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	updated_at TEXT DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+CREATE TABLE announces (
+	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+	sender_message_id INTEGER NOT NULL,
+	client_message_id INTEGER NOT NULL,
+	client_id INTEGER NOT NULL,
+	created_at TEXT DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	updated_at TEXT DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	FOREIGN KEY (client_id) REFERENCES clients(id) ON UPDATE no action ON DELETE no action
+);
+
+CREATE UNIQUE INDEX clients_username_unique ON clients (username);

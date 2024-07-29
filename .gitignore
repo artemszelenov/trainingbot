@@ -20,5 +20,5 @@ Thumbs.db
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
-# Drizzle
-db/sqlite.db
+# Sqlite
+db/data.sqlite*
