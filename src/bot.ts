@@ -1,7 +1,11 @@
 import { Bot, type TelegramMessage } from "gramio";
-import * as schema from "../db/schema";
-import { db } from "../db/instance";
-import { eq } from "drizzle-orm";
+import {
+  insertClient,
+  allClients,
+  insertAnnounce,
+  announcesToDelete,
+  announcesToUpdate,
+} from "$lib/server/database";
 
 const BOT_TOKEN = Bun.env.TG_BOT_TOKEN;
 const ADMIN_CHAT_ID = Bun.env.ADMIN_CHAT_ID;
@@ -37,17 +41,15 @@ let last_sender_announce_message_id: number | null = null;
 
 bot.command("start", (c) => {
   try {
-    db.insert(schema.clients)
-      .values({
-        chat_id: c.chat.id,
-        first_name: c.from?.firstName,
-        last_name: c.from?.lastName,
-        username: c.from?.username,
-      })
-      .run();
+    insertClient(
+      c.chat.id,
+      c.from?.firstName ?? "",
+      c.from?.lastName ?? "",
+      c.from?.username ?? ""
+    );
   } catch (err) {
     if (err instanceof Error) {
-      console.error("[Drizzle] ", err.message);
+      console.error("[SQLite] ", err.message);
     }
   }
 
@@ -78,13 +80,7 @@ bot.command("announce", async (c) => {
 bot.on("message", async (c) => {
   if (!announce_awaited) return;
 
-  const all_clients = await db
-    .select({
-      id: schema.clients.id,
-      chat_id: schema.clients.chat_id,
-    })
-    .from(schema.clients)
-    .all();
+  const all_clients = allClients();
 
   for (const client of all_clients) {
     if (client.chat_id === Number(ADMIN_CHAT_ID)) {
@@ -110,14 +106,7 @@ bot.on("message", async (c) => {
       return;
     }
 
-    await db
-      .insert(schema.announces)
-      .values({
-        client_id: client.id,
-        sender_message_id: c.id,
-        client_message_id: client_sent_msg.message_id,
-      })
-      .run();
+    insertAnnounce(client.id, c.id, client_sent_msg.message_id);
   }
 
   if (last_announce_status_message_id) {
@@ -159,24 +148,13 @@ bot.on("callback_query", async ({ message, data }) => {
   if (data === "delete_announce" && last_sender_announce_message_id) {
     announce_awaited = false;
 
-    const announces_to_delete = await db
-      .select({
-        client_message_id: schema.announces.client_message_id,
-        client_chat_id: schema.clients.chat_id,
-      })
-      .from(schema.announces)
-      .where(
-        eq(schema.announces.sender_message_id, last_sender_announce_message_id)
-      )
-      .leftJoin(
-        schema.clients,
-        eq(schema.announces.client_id, schema.clients.id)
-      )
-      .all();
+    const announces_to_delete = announcesToDelete(
+      last_sender_announce_message_id
+    );
 
     for (const a of announces_to_delete) {
       await bot.api.deleteMessage({
-        chat_id: a.client_chat_id!,
+        chat_id: a.client_chat_id,
         message_id: a.client_message_id,
       });
     }
@@ -191,28 +169,20 @@ bot.on("callback_query", async ({ message, data }) => {
 });
 
 bot.on("edited_message", async (msg) => {
-  const announces_to_update = await db
-    .select({
-      client_message_id: schema.announces.client_message_id,
-      chat_id: schema.clients.chat_id,
-    })
-    .from(schema.announces)
-    .where(eq(schema.announces.sender_message_id, msg.id))
-    .leftJoin(schema.clients, eq(schema.announces.client_id, schema.clients.id))
-    .all();
+  const announces_to_update = announcesToUpdate(msg.id);
 
   for (const a of announces_to_update) {
     try {
       if (msg.caption) {
         await bot.api.editMessageCaption({
           caption: msg.caption,
-          chat_id: a.chat_id!,
+          chat_id: a.chat_id,
           message_id: a.client_message_id,
         });
       } else if (msg.text) {
         await bot.api.editMessageText({
           text: msg.text,
-          chat_id: a.chat_id!,
+          chat_id: a.chat_id,
           message_id: a.client_message_id,
         });
       }
