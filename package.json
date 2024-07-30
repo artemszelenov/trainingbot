@@ -4,11 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "studio": "drizzle-kit studio",
-    "gen": "drizzle-kit generate",
-    "migrate": "drizzle-kit migrate",
-    "drop": "drizzle-kit drop",
     "tunnel": "bun ./src/tunnel.ts",
+    "db:migrate": "bun ./sqlite/commands/migrate.ts",
+    "db:print": "bun ./sqlite/commands/print.ts",
     "dev": "vite dev",
     "build": "vite build",
     "preview": "vite preview",

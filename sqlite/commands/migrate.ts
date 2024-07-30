@@ -1,15 +1,12 @@
-import { sql } from "./sqlite";
+import { parseSqlContent } from "../helpers";
+import { Migration } from "../mappings";
+import { sql } from "../database";
 import * as fs from "fs";
-
-class Migration {
-  id: string;
-  timestamp: string;
-}
 
 sql.run(`
   CREATE TABLE IF NOT EXISTS _migration (
     id TEXT PRIMARY KEY NOT NULL,
-    timestamp TEXT DEFAULT CURRENT_TIMESTAMP NOT NULL
+    timestamp TEXT NOT NULL
   );
 `);
 
@@ -29,8 +26,6 @@ sql.run(`
    0
   ) ON CONFLICT (id) DO NOTHING;
 `);
-
-// const stmt = sql.query("select * from _migration_lock;").values();
 
 const lock_stmt = sql.prepare(`
   UPDATE _migration_lock
@@ -56,10 +51,10 @@ const latest_migration_stmt = sql
   .as(Migration);
 
 const insert_migration_stmt = sql.prepare(`
-  INSERT INTO _migration (id, timestamp) VALUES ($file_name, $timestamp);
+  INSERT INTO _migration (id, timestamp) VALUES ($file_name, unixepoch());
 `);
 
-const run = sql.transaction(() => {
+const run = sql.transaction(async () => {
   const rows = lock_stmt.all();
 
   if (rows.length === 0) {
@@ -67,8 +62,6 @@ const run = sql.transaction(() => {
   }
 
   const latest_migration = latest_migration_stmt.get();
-
-  console.log(latest_migration);
 
   if (latest_migration) {
     console.log(
@@ -80,13 +73,13 @@ const run = sql.transaction(() => {
     console.log(`no previous migrations found`);
   }
 
-  const dir = new URL("migrations", import.meta.url);
+  const dir = new URL("../migrations", import.meta.url);
 
   for (const file_name of fs.readdirSync(dir)) {
-    if (file_name <= latest_migration?.id) continue;
+    if (latest_migration && file_name <= latest_migration?.id) continue;
     if (!file_name.endsWith(".sql")) continue;
 
-    const file_path = new URL(`migrations/${file_name}`, import.meta.url);
+    const file_path = new URL(`../migrations/${file_name}`, import.meta.url);
     const fileContent = fs.readFileSync(file_path, { encoding: "utf8" });
 
     const sql_stmts = parseSqlContent(fileContent);
@@ -97,22 +90,12 @@ const run = sql.transaction(() => {
       sql.run(sql_stmt);
     }
 
-    insert_migration_stmt.run(file_name, Date.now());
+    insert_migration_stmt.run(file_name);
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 
   unlock_stmt.run();
 });
 
 run();
-
-/**
- * A single .sql file can contain multiple sql statements
- * splitted by an empty line
- */
-function parseSqlContent(content: string): string[] {
-  const parts = content
-    .split(/\n\n/gm)
-    .map((v) => v.trim())
-    .filter((v) => v.length > 0);
-  return parts;
-}
