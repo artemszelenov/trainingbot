@@ -1,13 +1,13 @@
 import { sql } from "../database";
 
-const clients = sql.query("select * from clients;").values();
-const announces = sql.query("select * from announces;").values();
+const clients = sql.query("SELECT * FROM clients;").all();
+console.log("clients");
+console.table(clients);
 
-console.log("clients", clients);
-console.log("announces", announces);
+const announces = sql.query("SELECT * FROM announces;").all();
+console.log("announces");
+console.table(announces);
 
-const migration = sql.query("select * from _migration;").values();
-const migration_lock = sql.query("select * from _migration_lock;").values();
-
-console.log("migration", migration);
-console.log("migration_lock", migration_lock);
+const migration = sql.query("SELECT * FROM _migration;").all();
+console.log("applied migrations");
+console.table(migration);
