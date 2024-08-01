@@ -5,6 +5,7 @@ import {
   insertAnnounce,
   announcesToDelete,
   announcesToUpdate,
+  deleteAnnounce,
 } from "$lib/server/database";
 
 const BOT_TOKEN = Bun.env.TG_BOT_TOKEN;
@@ -157,6 +158,8 @@ bot.on("callback_query", async ({ message, data }) => {
         chat_id: a.client_chat_id,
         message_id: a.client_message_id,
       });
+
+      deleteAnnounce(a.client_message_id);
     }
 
     await bot.api.editMessageText({

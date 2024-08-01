@@ -62,12 +62,23 @@ export function announcesToDelete(last_sender_announce_message_id: number) {
         announces.client_message_id AS client_message_id,
         clients.chat_id AS client_chat_id
       FROM announces
-      WHERE sender_message_id = $last_sender_announce_message_id
-      LEFT JOIN clients ON announces.client_id = clients.id;
+      LEFT JOIN clients ON announces.client_id = clients.id
+      WHERE announces.sender_message_id = ?;
       `
     )
     .as(AnnouncesToDelete)
     .all(last_sender_announce_message_id);
+}
+
+// fix it to bulk delete
+export function deleteAnnounce(client_message_id: number) {
+  return sql
+    .query(
+      `
+      DELETE FROM announces WHERE client_message_id = ?;
+    `
+    )
+    .run(client_message_id);
 }
 
 class AnnouncesToUpdate {
@@ -83,8 +94,8 @@ export function announcesToUpdate(message_id: number) {
         announces.client_message_id AS client_message_id,
         clients.chat_id AS chat_id
       FROM announces
-      WHERE sender_message_id = $message_id
-      LEFT JOIN clients ON announces.client_id = clients.id;
+      LEFT JOIN clients ON announces.client_id = clients.id
+      WHERE announces.sender_message_id = ?;
     `
     )
     .as(AnnouncesToUpdate)
