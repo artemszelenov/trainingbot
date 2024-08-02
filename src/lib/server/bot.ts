@@ -201,7 +201,3 @@ bot.on("edited_message", async (msg) => {
     }
   }
 });
-
-bot.on("web_app_data", (context) => {
-  console.log("web context", context);
-});

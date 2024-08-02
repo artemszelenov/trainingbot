@@ -5,11 +5,14 @@
     initBackButton,
     initMainButton,
     isTMA,
+    initMiniApp,
+    retrieveLaunchParams,
     type BackButton,
     type MainButton,
   } from "@telegram-apps/sdk";
   import Author from "$lib/components/Author.svelte";
   import TabsNav from "$lib/components/TabsNav.svelte";
+  import type { BodyI } from "../../../routes/api/web-app/answer-form/types";
 
   let bb: BackButton;
   let mb: MainButton;
@@ -18,6 +21,7 @@
     isTMA().then((tma) => {
       if (!tma) return;
 
+      const [app] = initMiniApp();
       [bb] = initBackButton();
       [mb] = initMainButton();
 
@@ -32,6 +36,27 @@
       bb.on("click", () => {
         goto("/");
         bb.hide();
+      });
+
+      mb.on("click", () => {
+        const { initData } = retrieveLaunchParams();
+
+        if (!initData?.user?.id) {
+          console.error("[web app] > ", "user id is not found");
+          return;
+        }
+
+        const body: BodyI = {
+          service_name: "yoga 30-min",
+          chat_id: initData.user.id,
+        };
+
+        fetch("/api/web-app/answer-form", {
+          method: "POST",
+          body: JSON.stringify(body),
+        }).then(() => {
+          app.close();
+        });
       });
     });
   }

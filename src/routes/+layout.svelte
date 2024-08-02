@@ -1,6 +1,7 @@
 <script>
   import { dev, browser } from '$app/environment';
-  import { setDebug, isTMA } from '@telegram-apps/sdk';
+  import { onMount } from 'svelte'
+  import { setDebug, isTMA, retrieveLaunchParams } from '@telegram-apps/sdk';
   const { children } = $props();
 
   if (dev && browser) {
@@ -8,6 +9,17 @@
       setDebug(true);
     })
   }
+
+  onMount(() => {
+    const { initDataRaw } = retrieveLaunchParams()
+
+    fetch('/api/web-app/auth', {
+      method: 'POST',
+      headers: {
+        authorization: `tma ${initDataRaw}`
+      },
+    });
+  });
 </script>
 
 {@render children()}
