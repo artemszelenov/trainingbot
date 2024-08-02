@@ -1,6 +1,6 @@
 import { sql } from "../../../sqlite/database";
 
-export function insertClient(
+export function db_insert_client(
   chat_id: number,
   first_name: string,
   last_name: string,
@@ -22,7 +22,7 @@ class Client {
   chat_id: number;
 }
 
-export function allClients() {
+export function db_get_all_clients() {
   return sql
     .query(
       `
@@ -33,7 +33,7 @@ export function allClients() {
     .all();
 }
 
-export function insertAnnounce(
+export function db_insert_announce(
   client_id: number,
   sender_message_id: number,
   client_message_id: number
@@ -54,7 +54,9 @@ class AnnouncesToDelete {
   client_chat_id: number;
 }
 
-export function announcesToDelete(last_sender_announce_message_id: number) {
+export function db_get_announces_to_delete(
+  last_sender_announce_message_id: number
+) {
   return sql
     .query(
       `
@@ -71,7 +73,7 @@ export function announcesToDelete(last_sender_announce_message_id: number) {
 }
 
 // fix it to bulk delete
-export function deleteAnnounce(client_message_id: number) {
+export function db_delete_announce(client_message_id: number) {
   return sql
     .query(
       `
@@ -86,7 +88,7 @@ class AnnouncesToUpdate {
   chat_id: number;
 }
 
-export function announcesToUpdate(message_id: number) {
+export function db_get_announces_to_update(message_id: number) {
   return sql
     .query(
       `

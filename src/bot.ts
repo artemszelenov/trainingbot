@@ -1,21 +1,26 @@
 import { Bot, type TelegramMessage } from "gramio";
 import {
-  insertClient,
-  allClients,
-  insertAnnounce,
-  announcesToDelete,
-  announcesToUpdate,
-  deleteAnnounce,
+  db_insert_client,
+  db_get_all_clients,
+  db_insert_announce,
+  db_get_announces_to_delete,
+  db_get_announces_to_update,
+  db_delete_announce,
 } from "$lib/server/database";
 
 const BOT_TOKEN = Bun.env.TG_BOT_TOKEN;
 const ADMIN_CHAT_ID = Bun.env.ADMIN_CHAT_ID;
+const WEBKOOK_URL = Bun.env.WEBKOOK_URL;
 
 if (!BOT_TOKEN) {
   throw new Error("BOT_TOKEN is not set");
 }
 
 export const bot = new Bot(BOT_TOKEN);
+
+if (WEBKOOK_URL) {
+  await bot.api.setWebhook({ url: WEBKOOK_URL });
+}
 
 await bot.init();
 
@@ -36,13 +41,13 @@ bot.api.setMyCommands({
   },
 });
 
-let announce_awaited = false;
-let last_announce_status_message_id: number | null = null;
-let last_sender_announce_message_id: number | null = null;
+let state_announce_awaited = false;
+let state_announce_control_msg_id: number | null = null;
+let state_announce_sender_msg_id: number | null = null;
 
 bot.command("start", (c) => {
   try {
-    insertClient(
+    db_insert_client(
       c.chat.id,
       c.from?.firstName ?? "",
       c.from?.lastName ?? "",
@@ -62,9 +67,9 @@ bot.command("start", (c) => {
 });
 
 bot.command("announce", async (c) => {
-  announce_awaited = true;
+  state_announce_awaited = true;
 
-  const m = await c.send(
+  const msg = await c.send(
     "Напиши и отправь мне текст рассылки (можно прикрепить одно фото)",
     {
       reply_markup: {
@@ -75,13 +80,13 @@ bot.command("announce", async (c) => {
     }
   );
 
-  last_announce_status_message_id = m.id;
+  state_announce_control_msg_id = msg.id;
 });
 
-bot.on("message", async (c) => {
-  if (!announce_awaited) return;
+bot.on("message", async (context) => {
+  if (!state_announce_awaited) return;
 
-  const all_clients = allClients();
+  const all_clients = db_get_all_clients();
 
   for (const client of all_clients) {
     if (client.chat_id === Number(ADMIN_CHAT_ID)) {
@@ -89,16 +94,16 @@ bot.on("message", async (c) => {
     }
 
     let client_sent_msg: TelegramMessage | null = null;
-    if (c.text) {
+    if (context.text) {
       client_sent_msg = await bot.api.sendMessage({
         chat_id: client.chat_id,
-        text: c.text,
+        text: context.text,
       });
-    } else if (c.photo) {
+    } else if (context.photo) {
       client_sent_msg = await bot.api.sendPhoto({
         chat_id: client.chat_id,
-        photo: c.photo[0].fileId,
-        caption: c.caption,
+        photo: context.photo[0].fileId,
+        caption: context.caption,
       });
     }
 
@@ -107,14 +112,14 @@ bot.on("message", async (c) => {
       return;
     }
 
-    insertAnnounce(client.id, c.id, client_sent_msg.message_id);
+    db_insert_announce(client.id, context.id, client_sent_msg.message_id);
   }
 
-  if (last_announce_status_message_id) {
+  if (state_announce_control_msg_id) {
     await bot.api.editMessageText({
       text: "Рассылка успешно отправлена 🎉",
-      chat_id: c.chat.id,
-      message_id: last_announce_status_message_id,
+      chat_id: context.chat.id,
+      message_id: state_announce_control_msg_id,
       reply_markup: {
         inline_keyboard: [
           [
@@ -128,15 +133,15 @@ bot.on("message", async (c) => {
     });
   }
 
-  last_sender_announce_message_id = c.id;
-  announce_awaited = false;
+  state_announce_sender_msg_id = context.id;
+  state_announce_awaited = false;
 });
 
 bot.on("callback_query", async ({ message, data }) => {
   if (!message) return;
 
   if (data === "cancel_announce") {
-    announce_awaited = false;
+    state_announce_awaited = false;
 
     await bot.api.editMessageText({
       text: "Рассылка отменена",
@@ -146,11 +151,11 @@ bot.on("callback_query", async ({ message, data }) => {
     });
   }
 
-  if (data === "delete_announce" && last_sender_announce_message_id) {
-    announce_awaited = false;
+  if (data === "delete_announce" && state_announce_sender_msg_id) {
+    state_announce_awaited = false;
 
-    const announces_to_delete = announcesToDelete(
-      last_sender_announce_message_id
+    const announces_to_delete = db_get_announces_to_delete(
+      state_announce_sender_msg_id
     );
 
     for (const a of announces_to_delete) {
@@ -159,7 +164,7 @@ bot.on("callback_query", async ({ message, data }) => {
         message_id: a.client_message_id,
       });
 
-      deleteAnnounce(a.client_message_id);
+      db_delete_announce(a.client_message_id);
     }
 
     await bot.api.editMessageText({
@@ -172,7 +177,7 @@ bot.on("callback_query", async ({ message, data }) => {
 });
 
 bot.on("edited_message", async (msg) => {
-  const announces_to_update = announcesToUpdate(msg.id);
+  const announces_to_update = db_get_announces_to_update(msg.id);
 
   for (const a of announces_to_update) {
     try {
@@ -195,4 +200,8 @@ bot.on("edited_message", async (msg) => {
       }
     }
   }
+});
+
+bot.on("web_app_data", (context) => {
+  console.log("web context", context);
 });

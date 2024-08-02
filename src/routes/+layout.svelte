@@ -8,7 +8,6 @@
       setDebug(true);
     })
   }
-
 </script>
 
 {@render children()}

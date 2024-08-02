@@ -1,36 +1,45 @@
-<script>
-  import { browser } from '$app/environment';
-  import { goto, onNavigate } from '$app/navigation';
-  import { initBackButton, initMainButton, isTMA } from '@telegram-apps/sdk';
-  import Author from '$lib/components/Author.svelte';
-  import TabsNav from '$lib/components/TabsNav.svelte';
+<script lang="ts">
+  import { browser } from "$app/environment";
+  import { goto, onNavigate } from "$app/navigation";
+  import {
+    initBackButton,
+    initMainButton,
+    isTMA,
+    type BackButton,
+    type MainButton,
+  } from "@telegram-apps/sdk";
+  import Author from "$lib/components/Author.svelte";
+  import TabsNav from "$lib/components/TabsNav.svelte";
+
+  let bb: BackButton;
+  let mb: MainButton;
 
   if (browser) {
     isTMA().then((tma) => {
       if (!tma) return;
 
-      const [bb] = initBackButton();
-      const [mb] = initMainButton();
+      [bb] = initBackButton();
+      [mb] = initMainButton();
 
-      mb.setBgColor('#424242')
-        .setTextColor('#FFDAB9')
-        .setText('Вступить')
+      mb.setBgColor("#424242")
+        .setTextColor("#FFDAB9")
+        .setText("Вступить")
         .enable()
         .show();
 
       bb.show();
 
-      bb.on('click', () => {
-        goto('/');
+      bb.on("click", () => {
+        goto("/");
         bb.hide();
-      });
-
-      onNavigate(() => {
-        bb.hide();
-        mb.hide();
       });
     });
   }
+
+  onNavigate(() => {
+    bb?.hide();
+    mb?.hide();
+  });
 </script>
 
 <header class="container">

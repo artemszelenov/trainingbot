@@ -34,7 +34,7 @@
       position: absolute;
       inset: 0;
       background-color: var(--bg-basic-40);
-      content: '';
+      content: "";
     }
   }
 
@@ -68,7 +68,7 @@
     font-weight: 600;
 
     &::after {
-      content: '';
+      content: "";
       position: absolute;
       inset: 0;
     }
