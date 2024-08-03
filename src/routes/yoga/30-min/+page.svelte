@@ -12,7 +12,7 @@
   } from "@telegram-apps/sdk";
   import Author from "$lib/components/Author.svelte";
   import TabsNav from "$lib/components/TabsNav.svelte";
-  import type { BodyI } from "../../../routes/api/web-app/answer-form/types";
+  import type { FormBodyI } from "$lib/server/types";
 
   let bb: BackButton;
   let mb: MainButton;
@@ -42,16 +42,15 @@
         const { initData } = retrieveLaunchParams();
 
         if (!initData?.user?.id) {
-          console.error("[web app] > ", "user id is not found");
+          console.error("[trainingbot web app] > ", "user id is not found");
           return;
         }
 
-        const body: BodyI = {
-          service_name: "yoga 30-min",
+        const body: FormBodyI = {
           chat_id: initData.user.id,
         };
 
-        fetch("/api/web-app/answer-form", {
+        fetch("/api/web-app/forms/yoga-30-min", {
           method: "POST",
           body: JSON.stringify(body),
         }).then(() => {

@@ -1,4 +1,18 @@
 import { sql } from "../../../sqlite/database";
+import * as mappings from "../../../sqlite/mappings";
+
+export { mappings };
+
+export function db_get_client(chat_id: number) {
+  return sql
+    .query(
+      `
+      SELECT * FROM clients WHERE chat_id = ?;
+    `
+    )
+    .as(mappings.Client)
+    .get(chat_id);
+}
 
 export function db_insert_client(
   chat_id: number,
@@ -17,11 +31,6 @@ export function db_insert_client(
     .get(chat_id, first_name, last_name, username);
 }
 
-class Client {
-  id: number;
-  chat_id: number;
-}
-
 export function db_get_all_clients() {
   return sql
     .query(
@@ -29,7 +38,7 @@ export function db_get_all_clients() {
       SELECT id, chat_id FROM clients;
       `
     )
-    .as(Client)
+    .as(mappings.Client)
     .all();
 }
 
@@ -49,11 +58,6 @@ export function db_insert_announce(
     .run(client_id, sender_message_id, client_message_id);
 }
 
-class AnnouncesToDelete {
-  client_message_id: number;
-  client_chat_id: number;
-}
-
 export function db_get_announces_to_delete(
   last_sender_announce_message_id: number
 ) {
@@ -68,7 +72,7 @@ export function db_get_announces_to_delete(
       WHERE announces.sender_message_id = ?;
       `
     )
-    .as(AnnouncesToDelete)
+    .as(mappings.AnnouncesToDelete)
     .all(last_sender_announce_message_id);
 }
 
@@ -83,11 +87,6 @@ export function db_delete_announce(client_message_id: number) {
     .run(client_message_id);
 }
 
-class AnnouncesToUpdate {
-  client_message_id: number;
-  chat_id: number;
-}
-
 export function db_get_announces_to_update(message_id: number) {
   return sql
     .query(
@@ -100,7 +99,7 @@ export function db_get_announces_to_update(message_id: number) {
       WHERE announces.sender_message_id = ?;
     `
     )
-    .as(AnnouncesToUpdate)
+    .as(mappings.AnnouncesToUpdate)
     .all(message_id);
 }
 
