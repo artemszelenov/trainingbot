@@ -1,7 +1,11 @@
 import { parseSqlContent } from "../helpers";
-import { Migration } from "../mappings";
-import { sql } from "../database";
+import { sql } from "../instance";
 import * as fs from "fs";
+
+class Migration {
+  id: string;
+  timestamp: string;
+}
 
 sql.run(`
   CREATE TABLE IF NOT EXISTS _migration (

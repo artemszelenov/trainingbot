@@ -1,6 +1,6 @@
-import { Bot, Keyboard, type TelegramMessage } from "gramio";
+import { Bot, Keyboard, RemoveKeyboard, type TelegramMessage } from "gramio";
 import { prompt } from "@gramio/prompt";
-import type { FormBodyI, CallbackDataI } from "$lib/server/types";
+import type { CallbackDataI } from "$lib/server/types";
 import {
   db_insert_client,
   db_get_all_clients,
@@ -8,6 +8,10 @@ import {
   db_get_announces_to_delete,
   db_get_announces_to_update,
   db_delete_announce,
+  db_get_client,
+  db_insert_form_answer,
+  db_update_client_age,
+  db_update_client_phone,
   sql,
 } from "$lib/server/database";
 
@@ -154,85 +158,105 @@ bot.on("callback_query", async ({ message, data: raw_data, prompt }) => {
   if (!message) return;
 
   const data: CallbackDataI = raw_data ? JSON.parse(raw_data) : {};
-  console.log("data", data);
 
   if (data?.event === "form_start") {
-    // sql
-    //   .query(
-    //     `UPDATE clients SET awaited_form_service_id = ${service.id}
-    //     WHERE chat_id = ${message.chat.id}`
-    //   )
-    //   .run();
-    // const answer = await prompt("message", "Какой у вас запрос?");
-    // console.log("[answer] ", answer);
-    // const answer2 = await prompt(
-    //   "message",
-    //   "На сколько баллов от 1 до 10 вам важно решить запрос?",
-    //   {
-    //     reply_markup: new Keyboard()
-    //       .text("1")
-    //       .text("2")
-    //       .text("3")
-    //       .text("4")
-    //       .text("5")
-    //       .row()
-    //       .text("6")
-    //       .text("7")
-    //       .text("8")
-    //       .text("9")
-    //       .text("10")
-    //       .oneTime(),
-    //   }
-    // );
-    // console.log("[answer2] ", answer2);
-    // if (!client?.first_name) {
-    //   bot.api.sendMessage({
-    //     chat_id: body.chat_id,
-    //     text: `Введите ваше имя`,
-    //   });
-    // }
-    // if (!client?.last_name) {
-    //   bot.api.sendMessage({
-    //     chat_id: body.chat_id,
-    //     text: `Введите вашу фамилию`,
-    //   });
-    // }
-    // bot.api.sendMessage({
-    //   chat_id: body.chat_id,
-    //   text: `Какой у вас запрос?`,
-    // });
-    // await bot.api.sendMessage({
-    //   chat_id: context.chat.id,
-    //   text: `На сколько баллов от 1 до 10 вам важно решить запрос?`,
-    //   reply_markup: new Keyboard()
-    //     .text("1")
-    //     .text("2")
-    //     .text("3")
-    //     .text("4")
-    //     .text("5")
-    //     .row()
-    //     .text("6")
-    //     .text("7")
-    //     .text("8")
-    //     .text("9")
-    //     .text("10")
-    //     .oneTime(),
-    // });
-    // bot.api.sendMessage({
-    //   chat_id: body.chat_id,
-    //   text: `Ваш контактный телефон`,
-    //   reply_markup: new Keyboard()
-    //     .requestContact("Поделиться номером с Ритой")
-    //     .oneTime(),
-    // });
-    // bot.api.sendMessage({
-    //   chat_id: body.chat_id,
-    //   text: `Сколкьо вам полных лет?`,
-    // });
-    // bot.api.sendMessage({
-    //   chat_id: body.chat_id,
-    //   text: `Откуда обо мне узнали?`,
-    // });
+    const client = db_get_client(message.chat.id);
+
+    if (!client) {
+      throw new Error("[trainingbot] > Can't start from, client not found");
+    }
+
+    let question = "";
+    let answer: any = {};
+
+    if (!client?.first_name) {
+      question = "Введите ваше имя";
+      answer = await prompt("message", question);
+
+      db_insert_form_answer({
+        question,
+        answer: answer.text || "",
+        client_id: client.id,
+        service_id: data.payload.service_id,
+      });
+    }
+
+    if (!client?.last_name) {
+      question = "Введите вашу фамилию";
+      answer = await prompt("message", question);
+
+      db_insert_form_answer({
+        question,
+        answer: answer.text || "",
+        client_id: client.id,
+        service_id: data.payload.service_id,
+      });
+    }
+
+    question = "Какой у вас запрос?";
+    answer = await prompt("message", question);
+
+    db_insert_form_answer({
+      question,
+      answer: answer.text || "",
+      client_id: client.id,
+      service_id: data.payload.service_id,
+    });
+
+    question = "На сколько баллов от 1 до 10 вам важно решить запрос?";
+    answer = await prompt("message", question, {
+      reply_markup: new Keyboard()
+        .text("1")
+        .text("2")
+        .text("3")
+        .text("4")
+        .text("5")
+        .row()
+        .text("6")
+        .text("7")
+        .text("8")
+        .text("9")
+        .text("10")
+        .oneTime(),
+    });
+
+    db_insert_form_answer({
+      question,
+      answer: answer.text || "",
+      client_id: client.id,
+      service_id: data.payload.service_id,
+    });
+
+    question = "Ваш контактный телефон";
+    answer = await prompt("message", question, {
+      reply_markup: new Keyboard()
+        .requestContact("Поделиться номером с Ритой")
+        .oneTime(),
+    });
+
+    db_update_client_phone(client.chat_id, answer.contact.phoneNumber);
+
+    question = "Сколько вам полных лет?";
+    answer = await prompt("message", question, {
+      reply_markup: new RemoveKeyboard().selective(),
+    });
+
+    db_update_client_age(client.chat_id, parseInt(answer.text));
+
+    question = "Откуда обо мне узнали?";
+    answer = await prompt("message", question);
+
+    db_insert_form_answer({
+      question,
+      answer: answer.text || "",
+      client_id: client.id,
+      service_id: data.payload.service_id,
+    });
+
+    await bot.api.sendMessage({
+      chat_id: client.chat_id,
+      text: "Спасибо за уделенное время! Ваша ссылка на оплату *** . После оплаты Маргарита свяжется с вами",
+    });
   }
 
   if (data?.event === "cancel_announce") {

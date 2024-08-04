@@ -1,7 +1,6 @@
 import { InlineKeyboard } from "gramio";
 import { bot } from "$lib/server/bot";
-import { sql } from "$lib/server/database";
-import { mappings } from "$lib/server/database";
+import { sql, Service } from "$lib/server/database";
 import type { FormBodyI, CallbackDataI } from "$lib/server/types";
 
 export async function POST({ request, params }) {
@@ -11,7 +10,7 @@ export async function POST({ request, params }) {
     .query(
       `SELECT * FROM services WHERE service_slug = "${params.service_slug}"`
     )
-    .as(mappings.Service)
+    .as(Service)
     .get();
 
   if (!service) {

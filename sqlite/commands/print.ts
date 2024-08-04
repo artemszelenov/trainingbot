@@ -1,4 +1,4 @@
-import { sql } from "../database";
+import { sql } from "../instance";
 
 const clients = sql.query("SELECT * FROM clients;").all();
 console.log("clients");
