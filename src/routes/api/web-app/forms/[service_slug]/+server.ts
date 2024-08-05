@@ -1,17 +1,14 @@
 import { InlineKeyboard } from "gramio";
 import { bot } from "$lib/server/bot";
-import { sql, Service } from "$lib/server/database";
+import { db_get_service_by_slug, db_insert_form_and_return } from "$lib/server/database";
 import type { FormBodyI, CallbackDataI } from "$lib/server/types";
 
 export async function POST({ request, params }) {
   const body: FormBodyI = await request.json();
 
-  const service = sql
-    .query(
-      `SELECT * FROM services WHERE service_slug = "${params.service_slug}"`
-    )
-    .as(Service)
-    .get();
+  const new_form = db_insert_form_and_return();
+
+  const service = db_get_service_by_slug(params.service_slug)
 
   if (!service) {
     return new Response("[trainingbot] > Service not found", { status: 500 });
@@ -21,6 +18,7 @@ export async function POST({ request, params }) {
     event: "form_start",
     payload: {
       service_id: service.id,
+      form_id: new_form!.id,
     },
   };
 

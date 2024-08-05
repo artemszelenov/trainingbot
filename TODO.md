@@ -5,16 +5,5 @@
 5. редактирование картинки https://gramio.dev/plugins/official/media-group
 6. ~~move to bun https://bun.sh/guides/ecosystem/sveltekit~~
 7. ~~move from better-sqlite3 to bun:sqlite https://bun.sh/guides/ecosystem/drizzle~~
-
-анкета
-
-- (имя и фамилия если нет в базе)
-- какой у вас запрос?
-- на сколько баллов от 0 до 10 вам важно решить запрос?
-- ваш контактный телефон
-- сколкьо вам полных лет?
-- откуда обо мне узнали?
-
-после анкеты ссылка на оплату
-
-затем отправляю данные рите
+8. ~~анкета~~
+9. добавление клиента через сайт

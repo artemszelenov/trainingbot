@@ -8,6 +8,10 @@ const announces = sql.query("SELECT * FROM announces;").all();
 console.log("announces");
 console.table(announces);
 
+const forms = sql.query("SELECT * FROM forms;").all();
+console.log("forms");
+console.table(forms);
+
 const form_answers = sql.query("SELECT * FROM form_answers;").all();
 console.log("form_answers");
 console.table(form_answers);

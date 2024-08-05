@@ -46,7 +46,7 @@
     * {
       color: var(--text-basic);
       margin: 0;
-      font-family: Inter;
+      font-family: Inter, sans-serif;
     }
 
     .container {
@@ -62,6 +62,10 @@
 
     main {
       padding-block: 30px;
+    }
+
+    h1+*, h2+*, h3+*, h4+*, h5+*, h6+* {
+      margin-top: .8em;
     }
 
     h1 {

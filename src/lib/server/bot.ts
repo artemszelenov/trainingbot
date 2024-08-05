@@ -1,4 +1,4 @@
-import { Bot, Keyboard, RemoveKeyboard, type TelegramMessage } from "gramio";
+import { Bot, Keyboard, RemoveKeyboard, type TelegramMessage, bold, format, join } from "gramio";
 import { prompt } from "@gramio/prompt";
 import type { CallbackDataI } from "$lib/server/types";
 import {
@@ -12,6 +12,8 @@ import {
   db_insert_form_answer,
   db_update_client_age,
   db_update_client_phone,
+  db_get_service,
+  db_get_form_answers,
   sql,
 } from "$lib/server/database";
 
@@ -178,6 +180,7 @@ bot.on("callback_query", async ({ message, data: raw_data, prompt }) => {
         answer: answer.text || "",
         client_id: client.id,
         service_id: data.payload.service_id,
+        form_id: data.payload.form_id,
       });
     }
 
@@ -190,6 +193,7 @@ bot.on("callback_query", async ({ message, data: raw_data, prompt }) => {
         answer: answer.text || "",
         client_id: client.id,
         service_id: data.payload.service_id,
+        form_id: data.payload.form_id,
       });
     }
 
@@ -201,6 +205,7 @@ bot.on("callback_query", async ({ message, data: raw_data, prompt }) => {
       answer: answer.text || "",
       client_id: client.id,
       service_id: data.payload.service_id,
+      form_id: data.payload.form_id,
     });
 
     question = "На сколько баллов от 1 до 10 вам важно решить запрос?";
@@ -225,23 +230,28 @@ bot.on("callback_query", async ({ message, data: raw_data, prompt }) => {
       answer: answer.text || "",
       client_id: client.id,
       service_id: data.payload.service_id,
+      form_id: data.payload.form_id,
     });
 
-    question = "Ваш контактный телефон";
-    answer = await prompt("message", question, {
-      reply_markup: new Keyboard()
-        .requestContact("Поделиться номером с Ритой")
-        .oneTime(),
-    });
+    if (!client?.phone) {
+      question = "Ваш контактный телефон";
+      answer = await prompt("message", question, {
+        reply_markup: new Keyboard()
+          .requestContact("Поделиться номером с Ритой")
+          .oneTime(),
+      });
 
-    db_update_client_phone(client.chat_id, answer.contact.phoneNumber);
+      db_update_client_phone(client.chat_id, answer.contact.phoneNumber);
+    }
 
-    question = "Сколько вам полных лет?";
-    answer = await prompt("message", question, {
-      reply_markup: new RemoveKeyboard().selective(),
-    });
-
-    db_update_client_age(client.chat_id, parseInt(answer.text));
+    if (!client?.age) {
+      question = "Сколько вам полных лет?";
+      answer = await prompt("message", question, {
+        reply_markup: new RemoveKeyboard().selective(),
+      });
+  
+      db_update_client_age(client.chat_id, parseInt(answer.text));
+    }
 
     question = "Откуда обо мне узнали?";
     answer = await prompt("message", question);
@@ -251,11 +261,42 @@ bot.on("callback_query", async ({ message, data: raw_data, prompt }) => {
       answer: answer.text || "",
       client_id: client.id,
       service_id: data.payload.service_id,
+      form_id: data.payload.form_id,
     });
 
     await bot.api.sendMessage({
       chat_id: client.chat_id,
       text: "Спасибо за уделенное время! Ваша ссылка на оплату *** . После оплаты Маргарита свяжется с вами",
+    });
+
+    const service = db_get_service(data.payload.service_id);
+
+    const form_answers = db_get_form_answers(client.id, data.payload.service_id, data.payload.form_id);
+
+    const admin_text = format`
+      📝 ${bold`Новая заявка`}
+
+      ${bold`Клиент`}
+
+      ФИО: ${client.first_name ?? ''} ${client.last_name ?? ''}
+      Телефон: ${client.phone ?? ''}
+      Возраст: ${client.age ?? ''}
+      Имя пользователя: @${client.username}
+
+      ${bold`Услуга`}
+
+      "${service?.service_name ?? ''}"
+
+      ${bold`Результаты опроса`}
+
+      ${join(form_answers, ({ question = '', answer = '' }) => format`${question}: ${answer}`, "\n")}
+
+      ${bold`Оплата`}
+    `;
+
+    await bot.api.sendMessage({
+      chat_id: Number(ADMIN_CHAT_ID),
+      text: admin_text
     });
   }
 
