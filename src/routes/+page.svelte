@@ -19,21 +19,21 @@
     title="Консультация"
     subtitle="За 40 минут выявляем вашу проблему и пути решения"
     href="/yoga/consultation"
-    bgUrl="/yoga-30-min-bg.png"
+    bgUrl="/yoga-consultation.jpg"
   />
 
   <ServiceTeaser
     title={`Клуб "Йога за 30 минут" в Телеграм`}
     subtitle="30-минутные тематические уроки для поддержания тела и нервной системы в тонусе"
     href="/yoga/30-min"
-    bgUrl="/yoga-30-min-bg.png"
+    bgUrl="/yoga-30-min.jpg"
   />
 
   <ServiceTeaser
     title="Персональная йога"
     subtitle="Для тех, кто любит себя и ценит своё время на здоровую и полноценную жизнь"
     href="/yoga/personal"
-    bgUrl="/yoga-30-min-bg.png"
+    bgUrl="/yoga-personal.jpg"
   />
 </main>
 

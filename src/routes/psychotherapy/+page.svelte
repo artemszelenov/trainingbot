@@ -19,6 +19,6 @@
     title="Индивидуальная сессия"
     subtitle="Высокоэффективные психологические сессии ИНП (интегральное нейропрограммирование)"
     href="/psychotherapy/1-1"
-    bgUrl="/yoga-30-min-bg.png"
+    bgUrl="/psychotherapy-individual.jpg"
   />
 </main>

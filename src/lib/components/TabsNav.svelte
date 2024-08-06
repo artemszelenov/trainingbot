@@ -1,5 +1,6 @@
-<script>
-  const { children } = $props();
+<script lang="ts">
+  import type { Snippet } from 'svelte'
+  const { children }: { children: Snippet } = $props();
 </script>
 
 <nav>
@@ -24,7 +25,7 @@
   }
 
   nav :global(a.is-active) {
-    background-color: white;
+    background-color: var(--surface-1);
     box-shadow: 0 3px 8px 0 rgba(0, 0, 0, 12%), 0 3px 1px 0 rgba(0, 0, 0, 4%);
   }
 </style>

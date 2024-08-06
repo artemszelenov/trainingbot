@@ -11,9 +11,10 @@
     type MainButton,
   } from "@telegram-apps/sdk";
   import type { FormBodyI } from "$lib/server/types";
+  import type { Snippet } from 'svelte'
 
   interface PropsI {
-    children: any;
+    children: Snippet;
     service_slug: string;
     back_button_redirect_url?: string;
     main_button_text?: string;

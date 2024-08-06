@@ -19,6 +19,6 @@
     title="Индивидуальная комплексная работа"
     subtitle="Применение техник йоги совместно с интегральным нейропрограммированием"
     href="/complex/1-1"
-    bgUrl="/yoga-30-min-bg.png"
+    bgUrl="/complex-individual.jpg"
   />
 </main>

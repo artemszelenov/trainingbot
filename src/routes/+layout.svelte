@@ -1,7 +1,7 @@
 <script>
   import { dev, browser } from '$app/environment';
   import { onMount } from 'svelte'
-  import { setDebug, isTMA, retrieveLaunchParams } from '@telegram-apps/sdk';
+  import { setDebug, isTMA, retrieveLaunchParams, initMiniApp } from '@telegram-apps/sdk';
   const { children } = $props();
 
   if (dev && browser) {
@@ -11,14 +11,21 @@
   }
 
   onMount(() => {
-    const { initDataRaw } = retrieveLaunchParams()
+    isTMA().then(() => {
+      const [app] = initMiniApp();
+      if (app.isDark) {
+        app.setHeaderColor('#212121');
+      }
 
-    fetch('/api/web-app/auth', {
-      method: 'POST',
-      headers: {
-        authorization: `tma ${initDataRaw}`
-      },
-    });
+      const { initDataRaw } = retrieveLaunchParams()
+
+      fetch('/api/web-app/auth', {
+        method: 'POST',
+        headers: {
+          authorization: `tma ${initDataRaw}`
+        },
+      });
+    })
   });
 </script>
 
@@ -34,12 +41,23 @@
     --text-basic: #424242;
     --text-skin: #FFDAB9;
 
+    --surface-0: #fff;
+    --surface-1: #fff;
+
     --bg-basic: #424242;
-    --bg-basic-40: #42424240;
+    --bg-basic-60: #42424260;
 
     accent-color: var(--text-skin);
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --text-basic: #fff;
+      --surface-0: #212121;
+      --surface-1: #424242;
+    }
   }
 
   :global {
@@ -58,15 +76,16 @@
     body {
       padding-block: 30px;
       font-size: 16px;
+      background-color: var(--surface-0);
     }
 
     main {
       padding-block: 30px;
     }
 
-    h1+*, h2+*, h3+*, h4+*, h5+*, h6+* {
+    /* h1+*, h2+*, h3+*, h4+*, h5+*, h6+* {
       margin-top: .8em;
-    }
+    } */
 
     h1 {
       font-size: 34px;

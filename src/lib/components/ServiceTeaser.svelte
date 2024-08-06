@@ -21,8 +21,6 @@
 <style>
   article {
     position: relative;
-    display: flex;
-    flex-direction: column;
     border-radius: 18px;
     background-image: var(--bg);
     background-repeat: no-repeat;
@@ -33,17 +31,21 @@
     &::before {
       position: absolute;
       inset: 0;
-      background-color: var(--bg-basic-40);
-      content: "";
+      background-color: var(--bg-basic-60);
+      content: '';
     }
   }
 
   section {
     position: relative;
+    display: flex;
+    flex-direction: column;
     padding: 30px 22px 22px;
+    min-height: 58vw;
   }
 
   h1 {
+    margin: 0;
     font-size: 24px;
     font-weight: 600;
     color: white;
@@ -68,7 +70,7 @@
     font-weight: 600;
 
     &::after {
-      content: "";
+      content: '';
       position: absolute;
       inset: 0;
     }
