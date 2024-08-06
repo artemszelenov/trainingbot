@@ -1,5 +1,6 @@
 import { Bot, Keyboard, RemoveKeyboard, type TelegramMessage, bold, format, join } from "gramio";
 import { prompt } from "@gramio/prompt";
+import { atom } from 'nanostores'
 import type { CallbackDataI } from "$lib/server/types";
 import {
   db_insert_client,
@@ -13,8 +14,7 @@ import {
   db_update_client_age,
   db_update_client_phone,
   db_get_service,
-  db_get_form_answers,
-  sql,
+  db_get_form_answers
 } from "$lib/server/database";
 
 const BOT_TOKEN = Bun.env.TG_BOT_TOKEN;
@@ -25,7 +25,8 @@ if (!BOT_TOKEN) {
   throw new Error("BOT_TOKEN is not set");
 }
 
-export const bot = new Bot(BOT_TOKEN).extend(prompt());
+export const bot = new Bot(BOT_TOKEN)
+  .extend(prompt());
 
 if (WEBKOOK_URL) {
   await bot.api.setWebhook({ url: WEBKOOK_URL });
@@ -37,22 +38,9 @@ const ADMIN_NAME = "Рита";
 const WELCOME_MESSAGE =
   "Здравствуйте! Я чат-бот Маргариты. Благодаря мне, теперь вы всегда будете в курсе всех практик и мероприятий от Марго!";
 
-bot.api.setMyCommands({
-  commands: [
-    {
-      command: "announce",
-      description: "Создать новый анонс",
-    },
-  ],
-  scope: {
-    type: "chat",
-    chat_id: Number(ADMIN_CHAT_ID),
-  },
-});
-
-let state_announce_awaited = false;
-let state_announce_control_msg_id: number | null = null;
-let state_announce_sender_msg_id: number | null = null;
+export const $announce_awaited = atom(false);
+export const $announce_control_msg_id = atom<number | null>(null);
+export const $announce_sender_msg_id = atom<number | null>(null);
 
 bot.command("start", (c) => {
   try {
@@ -75,30 +63,8 @@ bot.command("start", (c) => {
   }
 });
 
-bot.command("announce", async (c) => {
-  state_announce_awaited = true;
-
-  const cbd: CallbackDataI = {
-    event: "cancel_announce",
-    payload: {},
-  };
-
-  const msg = await c.send(
-    "Напиши и отправь мне текст рассылки (можно прикрепить одно фото)",
-    {
-      reply_markup: {
-        inline_keyboard: [
-          [{ text: "Отмена", callback_data: JSON.stringify(cbd) }],
-        ],
-      },
-    }
-  );
-
-  state_announce_control_msg_id = msg.id;
-});
-
 bot.on("message", async (context) => {
-  if (!state_announce_awaited) return;
+  if (!$announce_awaited.get()) return;
 
   const all_clients = db_get_all_clients();
 
@@ -129,7 +95,7 @@ bot.on("message", async (context) => {
     db_insert_announce(client.id, context.id, client_sent_msg.message_id);
   }
 
-  if (state_announce_control_msg_id) {
+  if ($announce_control_msg_id.get()) {
     const cbd: CallbackDataI = {
       event: "delete_announce",
       payload: {},
@@ -138,7 +104,7 @@ bot.on("message", async (context) => {
     await bot.api.editMessageText({
       text: "Рассылка успешно отправлена 🎉",
       chat_id: context.chat.id,
-      message_id: state_announce_control_msg_id,
+      message_id: $announce_control_msg_id.get()!,
       reply_markup: {
         inline_keyboard: [
           [
@@ -152,8 +118,8 @@ bot.on("message", async (context) => {
     });
   }
 
-  state_announce_sender_msg_id = context.id;
-  state_announce_awaited = false;
+  $announce_sender_msg_id.set(context.id);
+  $announce_awaited.set(false);
 });
 
 bot.on("callback_query", async ({ message, data: raw_data, prompt }) => {
@@ -303,7 +269,7 @@ bot.on("callback_query", async ({ message, data: raw_data, prompt }) => {
   }
 
   if (data?.event === "cancel_announce") {
-    state_announce_awaited = false;
+    $announce_awaited.set(false);
 
     await bot.api.editMessageText({
       text: "Рассылка отменена",
@@ -313,11 +279,11 @@ bot.on("callback_query", async ({ message, data: raw_data, prompt }) => {
     });
   }
 
-  if (data?.event === "delete_announce" && state_announce_sender_msg_id) {
-    state_announce_awaited = false;
+  if (data?.event === "delete_announce" && $announce_sender_msg_id.get()) {
+    $announce_awaited.set(false);
 
     const announces_to_delete = db_get_announces_to_delete(
-      state_announce_sender_msg_id
+      $announce_sender_msg_id.get()!
     );
 
     for (const a of announces_to_delete) {
