@@ -249,7 +249,7 @@ bot.on("callback_query", async ({ message, data: raw_data, prompt }) => {
       answer = await prompt("message", question, {
         reply_markup: new RemoveKeyboard().selective(),
       });
-  
+
       db_update_client_age(client.chat_id, parseInt(answer.text));
     }
 
@@ -273,15 +273,17 @@ bot.on("callback_query", async ({ message, data: raw_data, prompt }) => {
 
     const form_answers = db_get_form_answers(client.id, data.payload.service_id, data.payload.form_id);
 
+    const fresh_client = db_get_client(client.chat_id);
+
     const admin_text = format`
       📝 ${bold`Новая заявка`}
 
       ${bold`Клиент`}
 
-      ФИО: ${client.first_name ?? ''} ${client.last_name ?? ''}
-      Телефон: ${client.phone ?? ''}
-      Возраст: ${client.age ?? ''}
-      Имя пользователя: @${client.username}
+      ФИО: ${fresh_client?.first_name ?? ''} ${fresh_client?.last_name ?? ''}
+      Телефон: ${fresh_client?.phone ?? ''}
+      Возраст: ${fresh_client?.age ?? ''}
+      Имя пользователя: @${fresh_client?.username ?? ''}
 
       ${bold`Услуга`}
 
