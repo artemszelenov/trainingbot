@@ -32,6 +32,7 @@
       position: absolute;
       inset: 0;
       background-color: var(--bg-basic-60);
+      backdrop-filter: blur(2px);
       content: '';
     }
   }
@@ -41,7 +42,7 @@
     display: flex;
     flex-direction: column;
     padding: 30px 22px 22px;
-    min-height: 58vw;
+    min-height: 47vw;
   }
 
   h1 {

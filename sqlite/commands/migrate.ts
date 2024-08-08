@@ -1,11 +1,6 @@
-import { parseSqlContent } from "../helpers";
+import { parse_sql_content } from "../helpers";
 import { sql } from "../instance";
 import * as fs from "fs";
-
-class Migration {
-  id: string;
-  timestamp: string;
-}
 
 sql.run(`
   CREATE TABLE IF NOT EXISTS _migration (
@@ -31,41 +26,29 @@ sql.run(`
   ) ON CONFLICT (id) DO NOTHING;
 `);
 
-const lock_stmt = sql.prepare(`
-  UPDATE _migration_lock
-  SET is_locked = 1
-  WHERE id = 'migration_lock' AND is_locked = 0
-  RETURNING id;
-`);
-
-const unlock_stmt = sql.prepare(`
-  UPDATE _migration_lock
-  SET is_locked = false
-  WHERE id = 'migration_lock'
-`);
-
-const latest_migration_stmt = sql
-  .prepare(
-    `
-  SELECT id, timestamp FROM _migration
-  ORDER BY timestamp DESC
-  LIMIT 1;
-`
-  )
-  .as(Migration);
-
-const insert_migration_stmt = sql.prepare(`
-  INSERT INTO _migration (id, timestamp) VALUES ($file_name, unixepoch());
-`);
-
 const run = sql.transaction(async () => {
-  const rows = lock_stmt.all();
+  const rows = sql.query(`
+    UPDATE _migration_lock
+    SET is_locked = 1
+    WHERE id = 'migration_lock' AND is_locked = 0
+    RETURNING id;
+  `).all();
 
   if (rows.length === 0) {
     throw new Error("migration is in progress");
   }
 
-  const latest_migration = latest_migration_stmt.get();
+  class Migration {
+    id: string;
+    timestamp: string;
+  }
+  const latest_migration = sql
+    .query(`
+      SELECT id, timestamp FROM _migration
+      ORDER BY timestamp DESC
+      LIMIT 1;
+    `)
+    .as(Migration).get();
 
   if (latest_migration) {
     console.log(
@@ -84,22 +67,28 @@ const run = sql.transaction(async () => {
     if (!file_name.endsWith(".sql")) continue;
 
     const file_path = new URL(`../migrations/${file_name}`, import.meta.url);
-    const fileContent = fs.readFileSync(file_path, { encoding: "utf8" });
+    const file_content = fs.readFileSync(file_path, { encoding: "utf8" });
 
-    const sql_stmts = parseSqlContent(fileContent);
+    const queries = parse_sql_content(file_content);
 
     console.log(`running migration ${file_name}`);
 
-    for (const sql_stmt of sql_stmts) {
-      sql.run(sql_stmt);
+    for (const query of queries) {
+      sql.run(query);
     }
 
-    insert_migration_stmt.run(file_name);
+    sql.query(`
+      INSERT INTO _migration (id, timestamp) VALUES (?, unixepoch());
+    `).run(file_name);
 
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 
-  unlock_stmt.run();
+  sql.query(`
+    UPDATE _migration_lock
+    SET is_locked = false
+    WHERE id = 'migration_lock'
+  `).run();
 });
 
 run();
