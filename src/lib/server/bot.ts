@@ -1,4 +1,4 @@
-import { Bot, Keyboard, RemoveKeyboard, type TelegramMessage, bold, format, join } from "gramio";
+import { Bot, Keyboard, RemoveKeyboard, type TelegramMessage, type Message, bold, format, join } from "gramio";
 import { prompt } from "@gramio/prompt";
 import { atom } from 'nanostores'
 import type { CallbackDataI } from "$lib/server/types";
@@ -52,7 +52,7 @@ bot.command("start", (c) => {
     );
   } catch (err) {
     if (err instanceof Error) {
-      console.error("[SQLite] ", err.message);
+      console.error("[SQLite] > ", err.message);
     }
   }
 
@@ -95,7 +95,8 @@ bot.on("message", async (context) => {
     db_insert_announce(client.id, context.id, client_sent_msg.message_id);
   }
 
-  if ($announce_control_msg_id.get()) {
+  const message_id = $announce_control_msg_id.get()
+  if (message_id) {
     const cbd: CallbackDataI = {
       event: "delete_announce",
       payload: {},
@@ -104,7 +105,7 @@ bot.on("message", async (context) => {
     await bot.api.editMessageText({
       text: "Рассылка успешно отправлена 🎉",
       chat_id: context.chat.id,
-      message_id: $announce_control_msg_id.get()!,
+      message_id,
       reply_markup: {
         inline_keyboard: [
           [
@@ -135,7 +136,7 @@ bot.on("callback_query", async ({ message, data: raw_data, prompt }) => {
     }
 
     let question = "";
-    let answer: any = {};
+    let answer: Message;
 
     if (!client?.first_name) {
       question = "Введите ваше имя";
@@ -207,7 +208,9 @@ bot.on("callback_query", async ({ message, data: raw_data, prompt }) => {
           .oneTime(),
       });
 
-      db_update_client_phone(client.chat_id, answer.contact.phoneNumber);
+      if (answer?.contact?.phoneNumber) {
+        db_update_client_phone(client.chat_id, answer?.contact?.phoneNumber);
+      }
     }
 
     if (!client?.age) {
@@ -216,7 +219,9 @@ bot.on("callback_query", async ({ message, data: raw_data, prompt }) => {
         reply_markup: new RemoveKeyboard().selective(),
       });
 
-      db_update_client_age(client.chat_id, parseInt(answer.text));
+      if (answer.text) {
+        db_update_client_age(client.chat_id, Number.parseInt(answer.text));
+      }
     }
 
     question = "Откуда обо мне узнали?";
@@ -258,8 +263,6 @@ bot.on("callback_query", async ({ message, data: raw_data, prompt }) => {
       ${bold`Результаты опроса`}
 
       ${join(form_answers, ({ question = '', answer = '' }) => format`${question}: ${answer}`, "\n")}
-
-      ${bold`Оплата`}
     `;
 
     await bot.api.sendMessage({
@@ -279,12 +282,12 @@ bot.on("callback_query", async ({ message, data: raw_data, prompt }) => {
     });
   }
 
-  if (data?.event === "delete_announce" && $announce_sender_msg_id.get()) {
+  const target_message_id = $announce_sender_msg_id.get();
+
+  if (data?.event === "delete_announce" && target_message_id) {
     $announce_awaited.set(false);
 
-    const announces_to_delete = db_get_announces_to_delete(
-      $announce_sender_msg_id.get()!
-    );
+    const announces_to_delete = db_get_announces_to_delete(target_message_id);
 
     for (const a of announces_to_delete) {
       await bot.api.deleteMessage({
