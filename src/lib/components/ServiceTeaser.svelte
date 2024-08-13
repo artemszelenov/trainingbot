@@ -31,8 +31,7 @@
     &::before {
       position: absolute;
       inset: 0;
-      background-color: var(--bg-basic-60);
-      backdrop-filter: blur(2px);
+      background-color: var(--bg-basic-dark);
       content: '';
     }
   }
@@ -42,7 +41,8 @@
     display: flex;
     flex-direction: column;
     padding: 30px 22px 22px;
-    min-height: 47vw;
+    min-height: 250px;
+    box-sizing: border-box;
   }
 
   h1 {

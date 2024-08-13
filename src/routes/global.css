@@ -11,7 +11,7 @@
   --surface-1: #fff;
 
   --bg-basic: #424242;
-  --bg-basic-60: #42424260;
+  --bg-basic-dark: #1c1b1b60;
 
   accent-color: var(--text-skin);
   scroll-behavior: smooth;
