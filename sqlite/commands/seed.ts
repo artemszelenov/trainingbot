@@ -2,48 +2,50 @@ import { sql } from "../instance";
 
 // йога
 sql
-  .query(
-    `
+	.query(
+		`
   INSERT INTO services (service_name, service_slug) 
   VALUES ('Клуб "Йога за 30 минут" в Телеграм', 'yoga-30-min');
-  `
-  )
-  .run();
+  `,
+	)
+	.run();
 
 sql
-  .query(
-    `
+	.query(
+		`
   INSERT INTO services (service_name, service_slug) 
   VALUES ('Персональная йога', 'yoga-personal');
-  `
-  )
-  .run();
+  `,
+	)
+	.run();
 
 sql
-  .query(
-    `
+	.query(
+		`
   INSERT INTO services (service_name, service_slug) 
   VALUES ('Консультация по йоге', 'yoga-consultation');
-  `
-  )
-  .run();
+  `,
+	)
+	.run();
 
 // психотерапия
 sql
-  .query(
-    `
+	.query(
+		`
   INSERT INTO services (service_name, service_slug) 
   VALUES ('Индивидуальная сессия', 'psychotherapy-individual');
-  `
-  )
-  .run();
+  `,
+	)
+	.run();
 
 // комплекс
 sql
-  .query(
-    `
+	.query(
+		`
   INSERT INTO services (service_name, service_slug) 
   VALUES ('Индивидуальная комплексная работа', 'complex-individual');
-  `
-  )
-  .run();
+  `,
+	)
+	.run();
+
+console.log("Services is created");
