@@ -9,41 +9,12 @@ sql.run(`
   );
 `);
 
-sql.run(`
-  CREATE TABLE IF NOT EXISTS _migration_lock (
-    id TEXT PRIMARY KEY NOT NULL,
-    is_locked INTEGER NOT NULL
-  );
-`);
-
-sql.run(`
-  INSERT INTO _migration_lock (
-    id,
-    is_locked
-  ) VALUES (
-   'migration_lock',
-   0
-  ) ON CONFLICT (id) DO NOTHING;
-`);
+class Migration {
+	id: string;
+	timestamp: string;
+}
 
 const run = sql.transaction(async () => {
-	const rows = sql
-		.query(`
-    UPDATE _migration_lock
-    SET is_locked = 1
-    WHERE id = 'migration_lock' AND is_locked = 0
-    RETURNING id;
-  `)
-		.all();
-
-	if (rows.length === 0) {
-		throw new Error("migration is in progress");
-	}
-
-	class Migration {
-		id: string;
-		timestamp: string;
-	}
 	const latest_migration = sql
 		.query(`
       SELECT id, timestamp FROM _migration
@@ -91,14 +62,6 @@ const run = sql.transaction(async () => {
 
 		await new Promise((resolve) => setTimeout(resolve, 1000));
 	}
-
-	sql
-		.query(`
-    UPDATE _migration_lock
-    SET is_locked = false
-    WHERE id = 'migration_lock'
-  `)
-		.run();
 });
 
 run();
