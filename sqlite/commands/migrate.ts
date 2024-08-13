@@ -64,14 +64,15 @@ const run = sql.transaction(async () => {
 	}
 
 	const dir = new URL("../migrations", import.meta.url);
+	const sorted_file_names = fs
+		.readdirSync(dir)
+		.toSorted((a, b) => (a > b ? 1 : -1));
 
-	for (const file_name of fs.readdirSync(dir)) {
-		console.log("file_name", file_name);
+	for (const file_name of sorted_file_names) {
 		if (latest_migration && file_name <= latest_migration?.id) continue;
 		if (!file_name.endsWith(".sql")) continue;
 
 		const file_path = new URL(`../migrations/${file_name}`, import.meta.url);
-		console.log("file_path", file_path);
 		const file_content = fs.readFileSync(file_path, { encoding: "utf8" });
 
 		const queries = parse_sql_content(file_content);
