@@ -1,0 +1,1 @@
+`rsync -avz root@95.213.229.42:/root/trainingbot/sqlite/data.sqlite ~/backups/`

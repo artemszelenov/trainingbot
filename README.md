@@ -5,3 +5,5 @@
 3. build
 4. migrate
 5. seed services
+6. Install and config caddy
+7. Run app as a service
