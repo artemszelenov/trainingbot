@@ -4,3 +4,4 @@
 2. Install deps
 3. build
 4. migrate
+5. seed services
