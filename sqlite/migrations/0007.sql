@@ -3,6 +3,4 @@ CREATE TABLE IF NOT EXISTS forms (
   name TEXT
 );
 
-ALTER TABLE form_answers DROP COLUMN form_id;
-
 ALTER TABLE form_answers ADD COLUMN form_id INTEGER NOT NULL DEFAULT 0 REFERENCES forms(id);
