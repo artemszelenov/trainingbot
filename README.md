@@ -1,9 +1,10 @@
-# To run on server
+# telegram training bot
 
-1. Install bun
-2. Install deps
-3. build
+## run locally
+
+1. install bun
+2. install deps
+3. setup tunnel
 4. migrate
-5. seed services
-6. Install and config caddy
-7. Run app as a service
+5. seed
+6. run dev

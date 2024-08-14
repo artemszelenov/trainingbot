@@ -23,3 +23,5 @@ vite.config.ts.timestamp-*
 # SQLite
 sqlite/data.sqlite*
 sqlite/backups
+
+TODO.md
