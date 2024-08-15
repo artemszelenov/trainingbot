@@ -10,7 +10,7 @@
     type BackButton,
     type MainButton,
   } from "@telegram-apps/sdk";
-  import type { FormBodyI } from "$lib/server/types";
+  import type { FormBody } from "$lib/server/types";
   import type { Snippet } from 'svelte'
 
   interface PropsI {
@@ -59,7 +59,7 @@
           return;
         }
 
-        const body: FormBodyI = {
+        const body: FormBody = {
           chat_id: initData.user.id,
         };
 
