@@ -6,7 +6,7 @@ import {
 	format,
 	join,
 	type CallbackQueryContext,
-} from "gramio";
+} from "@gramio/core";
 import {
 	db_get_client,
 	db_insert_form_answer,
@@ -15,18 +15,17 @@ import {
 	db_get_service,
 	db_get_form_answers,
 } from "$lib/server/database";
-import type { CallbackDataFormStart } from "$lib/server/types";
 import type { bot } from "$lib/server/bot/instance";
 
 export async function proceed_form_start(
 	context: CallbackQueryContext<typeof bot>,
-	data: CallbackDataFormStart,
 ) {
 	if (!context.message) return;
 
 	const message = context.message;
 	const prompt = context.prompt;
 	const bot = context.bot;
+	const data = context.queryData;
 
 	const client = db_get_client(message.chat.id);
 
@@ -39,14 +38,16 @@ export async function proceed_form_start(
 
 	if (!client?.first_name) {
 		question = "Введите ваше имя";
-		answer = await prompt("message", question);
+		answer = await prompt("message", question, {
+			reply_markup: new RemoveKeyboard(),
+		});
 
 		db_insert_form_answer({
 			question,
 			answer: answer.text || "",
 			client_id: client.id,
-			service_id: data.payload.service_id,
-			form_id: data.payload.form_id,
+			service_id: data.service_id,
+			form_id: data.form_id,
 		});
 	}
 
@@ -58,20 +59,22 @@ export async function proceed_form_start(
 			question,
 			answer: answer.text || "",
 			client_id: client.id,
-			service_id: data.payload.service_id,
-			form_id: data.payload.form_id,
+			service_id: data.service_id,
+			form_id: data.form_id,
 		});
 	}
 
 	question = "Какой у вас запрос?";
-	answer = await prompt("message", question);
+	answer = await prompt("message", question, {
+		reply_markup: new RemoveKeyboard(),
+	});
 
 	db_insert_form_answer({
 		question,
 		answer: answer.text || "",
 		client_id: client.id,
-		service_id: data.payload.service_id,
-		form_id: data.payload.form_id,
+		service_id: data.service_id,
+		form_id: data.form_id,
 	});
 
 	question = "На сколько баллов от 1 до 10 вам важно решить запрос?";
@@ -95,8 +98,8 @@ export async function proceed_form_start(
 		question,
 		answer: answer.text || "",
 		client_id: client.id,
-		service_id: data.payload.service_id,
-		form_id: data.payload.form_id,
+		service_id: data.service_id,
+		form_id: data.form_id,
 	});
 
 	if (!client?.phone) {
@@ -115,7 +118,7 @@ export async function proceed_form_start(
 	if (!client?.age) {
 		question = "Сколько вам полных лет?";
 		answer = await prompt("message", question, {
-			reply_markup: new RemoveKeyboard().selective(),
+			reply_markup: new RemoveKeyboard(),
 		});
 
 		if (answer.text) {
@@ -130,8 +133,8 @@ export async function proceed_form_start(
 		question,
 		answer: answer.text || "",
 		client_id: client.id,
-		service_id: data.payload.service_id,
-		form_id: data.payload.form_id,
+		service_id: data.service_id,
+		form_id: data.form_id,
 	});
 
 	await bot.api.sendMessage({
@@ -139,12 +142,12 @@ export async function proceed_form_start(
 		text: `Спасибо за уделенное время, ${client.first_name}! Маргарита свяжется с вами для уточнения деталей и оплаты`,
 	});
 
-	const service = db_get_service(data.payload.service_id);
+	const service = db_get_service(data.service_id);
 
 	const form_answers = db_get_form_answers(
 		client.id,
-		data.payload.service_id,
-		data.payload.form_id,
+		data.service_id,
+		data.form_id,
 	);
 
 	const fresh_client = db_get_client(client.chat_id);

@@ -1,4 +1,5 @@
-import type { MessageContext, TelegramMessage } from "gramio";
+import { InlineKeyboard, type MessageContext } from "@gramio/core";
+import type { TelegramMessage } from "@gramio/types";
 import type { bot } from "$lib/server/bot/instance";
 import { db_get_all_clients, db_insert_announce } from "$lib/server/database";
 import {
@@ -6,7 +7,7 @@ import {
 	$announce_sender_msg_id,
 	$announce_control_msg_id,
 } from "$lib/server/bot/state";
-import type { CallbackDataDeleteAnnounce } from "$lib/server/types";
+import { event_delete_announce } from "$lib/server/bot/callback_queries/events";
 
 export async function proceed_send_announce(
 	context: MessageContext<typeof bot>,
@@ -48,25 +49,14 @@ export async function proceed_send_announce(
 	// change control message state
 	const message_id = $announce_control_msg_id.get();
 	if (message_id) {
-		const cbd: CallbackDataDeleteAnnounce = {
-			event: "delete_announce",
-			payload: {},
-		};
-
 		await bot.api.editMessageText({
 			text: "Рассылка успешно отправлена 🎉",
 			chat_id: context.chat.id,
 			message_id,
-			reply_markup: {
-				inline_keyboard: [
-					[
-						{
-							text: "⚠️ Удалить последнюю рассылку",
-							callback_data: JSON.stringify(cbd),
-						},
-					],
-				],
-			},
+			reply_markup: new InlineKeyboard().text(
+				"⚠️ Удалить последнюю рассылку",
+				event_delete_announce.pack({}),
+			),
 		});
 	}
 

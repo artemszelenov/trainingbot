@@ -1,4 +1,4 @@
-import type { MessageContext } from "gramio";
+import type { MessageContext } from "@gramio/core";
 import type { bot } from "$lib/server/bot/instance";
 import { db_get_announces_to_update } from "$lib/server/database";
 import { $announce_awaited } from "$lib/server/bot/state";

@@ -1,4 +1,4 @@
-import type { MessageContext } from "gramio";
+import type { MessageContext } from "@gramio/core";
 import type { bot } from "$lib/server/bot/instance";
 import { db_insert_client } from "$lib/server/database";
 

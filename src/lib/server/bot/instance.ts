@@ -1,4 +1,4 @@
-import { Bot } from "gramio";
+import { Bot } from "@gramio/core";
 import { prompt } from "@gramio/prompt";
 
 const BOT_TOKEN = Bun.env.TG_BOT_TOKEN;

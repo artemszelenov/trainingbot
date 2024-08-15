@@ -1,4 +1,4 @@
-import { bot } from "$lib/server/bot/instance";
+import { bot } from "$lib/server/bot";
 
 export async function POST({ request }) {
 	try {
