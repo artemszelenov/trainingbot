@@ -1,5 +1,5 @@
 import { parse_sql_content } from "../helpers";
-import { sql } from "../instance";
+import { sql } from "../sqlite";
 import * as fs from "node:fs";
 
 sql.run(`

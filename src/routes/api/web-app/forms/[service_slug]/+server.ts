@@ -1,5 +1,5 @@
 import { InlineKeyboard } from "@gramio/core";
-import { bot } from "$lib/server/bot/instance";
+import { bot } from "$lib/server/bot";
 import {
 	db_get_service_by_slug,
 	db_insert_form_and_return,

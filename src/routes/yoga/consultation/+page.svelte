@@ -48,6 +48,6 @@
 
     <h3>Стоимость</h3>
 
-    <p><strong>2 000 ₽</strong> / Консультация</p>
+    <p><strong>2 000 ₽</strong></p>
   </main>
 </ServicePage>

@@ -3,9 +3,11 @@
   import { dev, browser } from '$app/environment';
   import { onMount } from 'svelte'
   import { setDebug, isTMA, retrieveLaunchParams, initMiniApp } from '@telegram-apps/sdk';
+  import Gift from "$lib/components/Gift.svelte"
   const { children, data } = $props();
 
   let is_admin = $state(false);
+  let is_new_client = $state(false);
 
   if (dev && browser) {
     isTMA().then(() => {
@@ -28,7 +30,11 @@
         headers: {
           authorization: `tma ${initDataRaw}`
         },
-      });
+      })
+        .then(res => res.json())
+        .then((data) => {
+          is_new_client = data.is_new_client
+        });
 
       if (initData?.user?.id === Number(data.admin_chat_id)) {
         is_admin = true;
@@ -36,6 +42,10 @@
     })
   });
 </script>
+
+{#if is_new_client}
+  <Gift />
+{/if}
 
 {#if is_admin}
   <nav class="container top-nav">

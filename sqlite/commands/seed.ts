@@ -1,4 +1,4 @@
-import { sql } from "../instance";
+import { sql } from "../sqlite";
 
 // йога
 sql

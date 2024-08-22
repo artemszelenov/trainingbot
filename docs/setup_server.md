@@ -15,6 +15,9 @@
 
 ### ufw
 
+`sudo ufw allow http`
+`sudo ufw allow https`
+`sudo ufw allow OpenSSH`
 `sudo ufw allow proto tcp from any to any port 80,443`
 
 ### local backup from remote server to my mac

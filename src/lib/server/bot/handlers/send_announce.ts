@@ -1,6 +1,6 @@
 import { InlineKeyboard, type MessageContext } from "@gramio/core";
 import type { TelegramMessage } from "@gramio/types";
-import type { bot } from "$lib/server/bot/instance";
+import type { bot } from "$lib/server/bot";
 import { db_get_all_clients, db_insert_announce } from "$lib/server/database";
 import {
 	$announce_awaited,

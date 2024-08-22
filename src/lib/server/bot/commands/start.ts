@@ -1,5 +1,5 @@
 import type { MessageContext } from "@gramio/core";
-import type { bot } from "$lib/server/bot/instance";
+import type { bot } from "$lib/server/bot";
 import { db_insert_client } from "$lib/server/database";
 
 const ADMIN_NAME = "Рита";

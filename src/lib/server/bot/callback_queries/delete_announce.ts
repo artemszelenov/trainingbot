@@ -1,5 +1,5 @@
 import type { CallbackQueryContext } from "@gramio/core";
-import type { bot } from "$lib/server/bot/instance";
+import type { bot } from "$lib/server/bot";
 import {
 	db_get_announces_to_delete,
 	db_delete_announce,

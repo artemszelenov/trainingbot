@@ -15,7 +15,7 @@ import {
 	db_get_service,
 	db_get_form_answers,
 } from "$lib/server/database";
-import type { bot } from "$lib/server/bot/instance";
+import type { bot } from "$lib/server/bot";
 
 export async function proceed_form_start(
 	context: CallbackQueryContext<typeof bot>,

@@ -1,5 +1,5 @@
 import { InlineKeyboard } from "@gramio/core";
-import { bot } from "$lib/server/bot/instance";
+import { bot } from "$lib/server/bot";
 import {
 	$announce_control_msg_id,
 	$announce_awaited,
