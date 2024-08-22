@@ -5,7 +5,7 @@ export async function POST({ request, url }) {
 
 	await bot.api.sendDocument({
 		chat_id: body.chat_id,
-		document: `${url.origin}/api/web-app/free-guide/`,
+		document: `${url.origin}/api/web-app/free-guide?0`,
 		caption: 'Гайд "Топ-5 асан от ноющей поясницы"',
 	});
 
