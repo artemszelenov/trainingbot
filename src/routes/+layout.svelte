@@ -2,8 +2,9 @@
   import './global.css';
   import { dev, browser } from '$app/environment';
   import { onMount } from 'svelte'
-  import { setDebug, isTMA, retrieveLaunchParams, initMiniApp } from '@telegram-apps/sdk';
-  import Gift from "$lib/components/Gift.svelte"
+  import { setDebug, isTMA, retrieveLaunchParams, initMiniApp, initViewport } from '@telegram-apps/sdk';
+  import Gift from "$lib/components/Gift.svelte";
+
   const { children, data } = $props();
 
   let is_admin = $state(false);
@@ -16,11 +17,18 @@
   }
 
   onMount(() => {
-    isTMA().then(() => {
+    isTMA().then(async () => {
       const [app] = initMiniApp();
+      const [viewport] = initViewport();
 
       if (app.isDark) {
         app.setHeaderColor('#212121');
+      }
+
+      const vp = await viewport
+      
+      if (!vp.isExpanded) {
+        vp.expand();
       }
 
       const { initData, initDataRaw } = retrieveLaunchParams()

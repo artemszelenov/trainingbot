@@ -20,7 +20,7 @@
       chat_id: initData?.user?.id,
     };
 
-    fetch('/api/web-app/get-free-guide', {
+    fetch('/api/web-app/get-free-yoga-guide', {
       method: 'POST',
       body: JSON.stringify(body),
     }).then(() => {
@@ -67,6 +67,9 @@
     width: calc(100vw - 32px);
     background-color: var(--surface-0);
     border-radius: 16px;
+    animation-duration: 500ms;
+    animation-name: fade;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .title {
@@ -102,5 +105,15 @@
 
   .btn.is-primary {
     border: 1px solid var(--bg-basic);
+  }
+
+  @keyframes fade {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
   }
 </style>
